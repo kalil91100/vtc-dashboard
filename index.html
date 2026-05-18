@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard VTC Finance</title>
+  <style>
+    :root {
+      --primary:#1a56db; --primary-dark:#1e40af; --success:#10b981;
+      --warning:#f59e0b; --danger:#ef4444; --info:#06b6d4;
+      --bg:#f1f5f9; --card:#fff; --text:#1e293b; --text-muted:#64748b;
+      --border:#e2e8f0; --sidebar-w:260px; --header-h:60px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    #app{display:flex;min-height:100vh}
+
+    /* SIDEBAR */
+    #sidebar{width:var(--sidebar-w);background:#1e293b;color:#e2e8f0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s;overflow-y:auto}
+    #sidebar.hidden{transform:translateX(-100%)}
+    .logo{padding:18px 16px 12px;border-bottom:1px solid #334155}
+    .logo h1{font-size:1rem;font-weight:700;color:#fff}
+    .logo span{font-size:.72rem;color:#94a3b8}
+    .nav-section{padding:10px 16px 4px;font-size:.68rem;text-transform:uppercase;color:#475569;letter-spacing:.08em}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-radius:6px;margin:1px 8px;font-size:.85rem;transition:background .15s;color:#cbd5e1}
+    .nav-item:hover{background:#334155;color:#fff}
+    .nav-item.active{background:var(--primary);color:#fff}
+    .nav-icon{font-size:1rem;width:18px;text-align:center}
+    .sidebar-footer{padding:12px 16px;border-top:1px solid #334155;font-size:.72rem;color:#475569;margin-top:auto}
+
+    /* MAIN */
+    #main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;min-height:100vh}
+    #topbar{position:sticky;top:0;z-index:50;height:var(--header-h);background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px}
+    @media(max-width:600px){.hide-xs{display:none}}
+    #menu-toggle{display:none;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text)}
+    .topbar-title{font-size:.95rem;font-weight:700;flex:1}
+    #content{flex:1;padding:22px 18px;max-width:1200px;width:100%;margin:0 auto}
+
+    /* GRID / CARDS */
+    .grid{display:grid;gap:14px}
+    .g2{grid-template-columns:repeat(2,1fr)}
+    .g3{grid-template-columns:repeat(3,1fr)}
+    .g4{grid-template-columns:repeat(4,1fr)}
+    .card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px}
+    .card-title{font-size:.75rem;font-weight:600;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;margin-bottom:6px}
+    .stat-value{font-size:1.7rem;font-weight:700}
+    .stat-sub{font-size:.78rem;color:var(--text-muted);margin-top:3px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700}
+    .bg-green{background:#d1fae5;color:#065f46}
+    .bg-red{background:#fee2e2;color:#991b1b}
+    .bg-yellow{background:#fef3c7;color:#92400e}
+    .bg-blue{background:#dbeafe;color:#1e40af}
+    .bg-gray{background:#f1f5f9;color:#475569}
+
+    /* SECTION HEADER */
+    .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+    .sec-head h2{font-size:1rem;font-weight:700}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;border:none;cursor:pointer;font-size:.82rem;font-weight:600;transition:opacity .15s}
+    .btn:hover{opacity:.85}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-warning{background:var(--warning);color:#fff}
+    .btn-info{background:var(--info);color:#fff}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn-sm{padding:5px 9px;font-size:.78rem}
+    .btn-group{display:flex;gap:6px;flex-wrap:wrap}
+
+    /* TABLE */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.84rem}
+    th{background:var(--bg);padding:9px 11px;text-align:left;font-weight:600;font-size:.76rem;color:var(--text-muted);border-bottom:1px solid var(--border)}
+    td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f8fafc}
+    .pos{color:var(--success);font-weight:700}
+    .neg{color:var(--danger);font-weight:700}
+
+    /* PROGRESS */
+    .prog-wrap{background:var(--bg);border-radius:8px;height:7px;overflow:hidden;margin-top:5px}
+    .prog-bar{height:100%;border-radius:8px;transition:width .4s}
+    .bar-g{background:var(--success)}
+    .bar-y{background:var(--warning)}
+    .bar-r{background:var(--danger)}
+    .bar-b{background:var(--primary)}
+
+    /* MODAL */
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+    .modal-bg.open{display:flex}
+    .modal{background:var(--card);border-radius:14px;padding:22px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;animation:slideUp .22s ease}
+    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .modal-head h3{font-size:1rem;font-weight:700}
+    .modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-muted)}
+    .fg{margin-bottom:13px}
+    .fg label{display:block;font-size:.79rem;font-weight:600;margin-bottom:4px;color:var(--text-muted)}
+    .fg input,.fg select,.fg textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:.88rem;background:var(--bg)}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+    /* ALERTS TOAST */
+    #toasts{position:fixed;top:68px;right:14px;z-index:300;display:flex;flex-direction:column;gap:7px;max-width:320px}
+    .toast{background:var(--card);border-radius:10px;padding:11px 14px;border-left:4px solid var(--warning);box-shadow:0 4px 16px rgba(0,0,0,.1);display:flex;align-items:flex-start;gap:9px;animation:slideIn .3s ease}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .toast.danger{border-color:var(--danger)}
+    .toast.success{border-color:var(--success)}
+    .toast.info{border-color:var(--info)}
+    .toast-body{flex:1;font-size:.8rem}
+    .toast-title{font-weight:700;margin-bottom:2px}
+    .toast-close{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.95rem}
+
+    /* SEARCH BAR */
+    .search-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    .search-bar input,.search-bar select{padding:7px 11px;border:1px solid var(--border);border-radius:8px;font-size:.84rem;background:var(--card)}
+
+    /* CHART */
+    .chart-bars{display:flex;align-items:flex-end;gap:3px;height:110px;padding-top:6px}
+    .cbar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+    .cbar{width:100%;border-radius:4px 4px 0 0;transition:height .4s;min-height:2px;cursor:pointer}
+    .clabel{font-size:.62rem;color:var(--text-muted)}
+    .cval{font-size:.62rem;font-weight:600}
+
+    /* CATEGORY BREAKDOWN */
+    .cat-row{margin-bottom:11px}
+    .cat-row-head{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:3px}
+
+    /* DEBT CARD */
+    .debt-card{border:1px solid var(--border);border-radius:10px;padding:15px;background:var(--card);margin-bottom:10px}
+    .debt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+    .debt-title{font-weight:700;font-size:.9rem}
+    .debt-meta{font-size:.78rem;color:var(--text-muted);margin-top:3px}
+
+    /* ACCOUNT CARD */
+    .acc-card{border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--card);display:flex;align-items:center;gap:14px}
+    .acc-icon{font-size:2rem}
+    .acc-info{flex:1}
+    .acc-name{font-weight:700;font-size:.95rem}
+    .acc-type{font-size:.75rem;color:var(--text-muted)}
+    .acc-balance{font-size:1.4rem;font-weight:700;text-align:right}
+
+    /* TABS */
+    .tabs{display:flex;gap:3px;background:var(--bg);padding:3px;border-radius:10px;margin-bottom:14px}
+    .tab{flex:1;text-align:center;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--text-muted);border:none;background:none}
+    .tab.active{background:var(--card);color:var(--primary);box-shadow:0 1px 4px rgba(0,0,0,.07)}
+
+    /* SUMMARY TABLE */
+    .sum-table{width:100%;font-size:.85rem;border-collapse:collapse}
+    .sum-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
+    .sum-table tr:last-child td{border-bottom:none;font-weight:700;font-size:.95rem}
+
+    /* OVERLAY */
+    #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+    #overlay.open{display:block}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:36px 18px;color:var(--text-muted)}
+    .empty .eicon{font-size:2.4rem;margin-bottom:8px}
+
+    /* MONTH NAV */
+    .month-nav{display:flex;align-items:center;gap:7px}
+    .month-nav select{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:.82rem;background:var(--bg)}
+
+    /* CHIP */
+    .chip{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.72rem;font-weight:700}
+
+    /* KBIS SECTION RULE */
+    .rule-bar{height:3px;border-radius:3px;margin:6px 0 14px}
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      #sidebar{transform:translateX(-100%)}
+      #sidebar.open{transform:translateX(0)}
+      #main{margin-left:0}
+      #menu-toggle{display:block}
+      .g4{grid-template-columns:repeat(2,1fr)}
+      .g3{grid-template-columns:1fr 1fr}
+      .g2{grid-template-columns:1fr}
+      #content{padding:14px 11px}
+      .form-row{grid-template-columns:1fr}
+    }
+    @media(max-width:480px){
+      .g4,.g3{grid-template-columns:1fr}
+      .stat-value{font-size:1.35rem}
+    }
+    @media print{
+      #sidebar,#topbar,.btn,#toasts,.modal-bg{display:none!important}
+      #main{margin-left:0}
+      .card{break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <nav id="sidebar">
+    <div class="logo">
+      <h1>🚗 Dashboard VTC Finance</h1>
+      <span id="user-name-display">Auto-entrepreneur</span>
+    </div>
+    <div style="padding:8px 0">
+      <div class="nav-section">Vue globale</div>
+      <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">🏠</span>Tableau de bord</div>
+
+      <div class="nav-section">Flux financiers</div>
+      <div class="nav-item" onclick="nav('recettes')"><span class="nav-icon">💰</span>Recettes</div>
+      <div class="nav-item" onclick="nav('depenses')"><span class="nav-icon">💸</span>Dépenses</div>
+
+      <div class="nav-section">Activité VTC</div>
+      <div class="nav-item" onclick="nav('transferts')"><span class="nav-icon">🔄</span>Transferts</div>
+      <div class="nav-item" onclick="nav('rentabilite')"><span class="nav-icon">📈</span>Rentabilité</div>
+      <div class="nav-item" onclick="nav('bilan')"><span class="nav-icon">📋</span>Bilan annuel</div>
+
+      <div class="nav-section">Compte personnel</div>
+      <div class="nav-item" onclick="nav('perso-rev')"><span class="nav-icon">💼</span>Revenus (CDI…)</div>
+      <div class="nav-item" onclick="nav('perso-dep')"><span class="nav-icon">🛒</span>Dépenses perso</div>
+
+      <div class="nav-section">Trésorerie</div>
+      <div class="nav-item" onclick="nav('comptes')"><span class="nav-icon">🏦</span>Comptes</div>
+      <div class="nav-item" onclick="nav('dettes')"><span class="nav-icon">💳</span>Dettes</div>
+      <div class="nav-item" onclick="nav('budget')"><span class="nav-icon">🎯</span>Budget prévisionnel</div>
+
+      <div class="nav-section">Administration</div>
+      <div class="nav-item" onclick="nav('categories')"><span class="nav-icon">🏷️</span>Catégories</div>
+      <div class="nav-item" onclick="nav('documents')"><span class="nav-icon">📁</span>Documents</div>
+      <div class="nav-item" onclick="nav('alertes')"><span class="nav-icon">🔔</span>Alertes</div>
+      <div class="nav-item" onclick="nav('parametres')"><span class="nav-icon">⚙️</span>Paramètres</div>
+    </div>
+    <div class="sidebar-footer">v2.0 · Données locales · Offline-ready</div>
+  </nav>
+  <div id="overlay" onclick="closeSidebar()"></div>
+
+  <div id="main">
+    <div id="topbar">
+      <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <span class="topbar-title" id="page-title">Tableau de bord</span>
+      <div class="month-nav">
+        <select id="month-select" onchange="changeMonth()"></select>
+      </div>
+      <span id="sync-badge" style="font-size:.73rem;color:#94a3b8;cursor:pointer;white-space:nowrap" onclick="nav('parametres')" title="Synchronisation">☁️</span>
+      <button class="btn btn-outline btn-sm" onclick="quickBackup()" title="Sauvegarder mes données sur cet appareil" style="gap:4px">💾 <span class="hide-xs">Sauvegarder</span></button>
+      <button class="btn btn-outline btn-sm" onclick="nav('parametres')" title="Paramètres">⚙️</button>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+<div id="toasts"></div>
+<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════
+//  INDEX DB  (with localStorage fallback)
+// ═══════════════════════════════════════════════════════════
+const IDB = (() => {
+  let _db = null;
+  const STORES = ['vtc-recettes','vtc-depenses','perso-rev','perso-dep',
+    'transferts','comptes','dettes','budgets','documents','alertes-cfg',
+    'categories','prefs-kv'];
+
+  function open() {
+    return new Promise((res, rej) => {
+      if (_db) return res(_db);
+      const req = indexedDB.open('vtcfinance', 2);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        STORES.forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath:'id' }); });
+      };
+      req.onsuccess = e => { _db = e.target.result; res(_db); };
+      req.onerror = e => rej(e.target.error);
+    });
+  }
+
+  async function getAll(store) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readonly');
+      const req = tx.objectStore(store).getAll();
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  }
+
+  async function put(store, item) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).put(item);
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+
+  async function del(store, id) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).delete(id);
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+
+  async function clear(store) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).clear();
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+
+  async function kvGet(key, def) {
+    const rows = await getAll('prefs-kv');
+    const found = rows.find(r => r.id === key);
+    return found ? found.value : def;
+  }
+
+  async function kvSet(key, value) {
+    await put('prefs-kv', { id: key, value });
+  }
+
+  return { getAll, put, del, clear, kvGet, kvSet, STORES };
+})();
+
+// ═══════════════════════════════════════════════════════════
+//  SYNC — JSONBin.io multi-device sync
+// ═══════════════════════════════════════════════════════════
+const SYNC = (() => {
+  const CFG_KEY = 'vtc-jsonbin-cfg';
+  let _status = 'noconfig';
+
+  function _cfg() {
+    try { return JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); }
+    catch { return null; }
+  }
+
+  function _setStatus(s) {
+    _status = s;
+    const el = document.getElementById('sync-badge');
+    if (!el) return;
+    const map = {
+      noconfig: ['☁️', '#94a3b8'],
+      syncing:  ['🔄 Sync…', '#2563eb'],
+      synced:   ['☁️ Sync ✓', '#10b981'],
+      error:    ['⚠️ Erreur sync', '#ef4444'],
+    };
+    const [txt, col] = map[s] || map.noconfig;
+    el.textContent = txt;
+    el.style.color = col;
+  }
+
+  function init() {
+    _setStatus(_cfg() ? 'synced' : 'noconfig');
+  }
+
+  // no-op stubs kept for compatibility with save() / remove()
+  function put() {}
+  function del() {}
+
+  async function pushAll() {
+    const cfg = _cfg();
+    if (!cfg) { toast('Configurez la synchronisation dans Paramètres.', 'danger'); return; }
+    _setStatus('syncing');
+    try {
+      const data = {};
+      for (const store of IDB.STORES) data[store] = await IDB.getAll(store);
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      _setStatus('synced');
+      localStorage.setItem('vtc-last-backup', Date.now().toString());
+      toast('☁️ Données envoyées vers le cloud avec succès !', 'success');
+    } catch(e) {
+      _setStatus('error');
+      toast('Erreur d\'envoi : ' + (e.message || e), 'danger');
+    }
+  }
+
+  async function pullAll() {
+    const cfg = _cfg();
+    if (!cfg) { toast('Configurez la synchronisation dans Paramètres.', 'danger'); return; }
+    if (!confirm('⚠️ Cela va remplacer toutes vos données locales par les données du cloud. Continuer ?')) return;
+    _setStatus('syncing');
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`, {
+        headers: { 'X-Master-Key': cfg.apiKey }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      const data = json.record;
+      for (const store of IDB.STORES) {
+        if (!Array.isArray(data[store])) continue;
+        await IDB.clear(store);
+        for (const item of data[store]) await IDB.put(store, item);
+        delete CACHE[store];
+      }
+      _setStatus('synced');
+      render();
+      toast('✅ Données récupérées depuis le cloud !', 'success');
+    } catch(e) {
+      _setStatus('error');
+      toast('Erreur de récupération : ' + (e.message || e), 'danger');
+    }
+  }
+
+  function configure(apiKey, binId) {
+    if (!apiKey.trim() || !binId.trim()) {
+      toast('Remplissez les deux champs.', 'danger'); return;
+    }
+    localStorage.setItem(CFG_KEY, JSON.stringify({ apiKey: apiKey.trim(), binId: binId.trim() }));
+    _setStatus('synced');
+    toast('✅ Configuration sauvegardée !', 'success');
+    render();
+  }
+
+  function removeConfig() {
+    if (!confirm('Supprimer la configuration ? La synchronisation sera désactivée.')) return;
+    localStorage.removeItem(CFG_KEY);
+    _setStatus('noconfig');
+    toast('Configuration supprimée.', 'success');
+    render();
+  }
+
+  function isConfigured() { return !!_cfg(); }
+  function getStatus()    { return _status; }
+
+  return { init, put, del, pushAll, pullAll, configure, removeConfig, isConfigured, getStatus };
+})();
+
+// ═══════════════════════════════════════════════════════════
+//  CACHE (in-memory for this session)
+// ═══════════════════════════════════════════════════════════
+const CACHE = {};
+async function load(store) {
+  if (!CACHE[store]) CACHE[store] = await IDB.getAll(store);
+  return CACHE[store];
+}
+async function save(store, item) {
+  const items = await load(store);
+  const idx = items.findIndex(i => i.id === item.id);
+  if (idx >= 0) items[idx] = item; else items.push(item);
+  await IDB.put(store, item);
+  SYNC.put(store, item); // sync to cloud (fire & forget)
+}
+async function remove(store, id) {
+  CACHE[store] = (CACHE[store] || []).filter(i => i.id !== id);
+  await IDB.del(store, id);
+  SYNC.del(store, id); // sync to cloud (fire & forget)
+}
+function invalidate(store) { delete CACHE[store]; }
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+const fmt = n => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n||0);
+const fmtD = d => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const sum = (arr, f='amount') => arr.reduce((s,i) => s+(parseFloat(i[f])||0), 0);
+function byMonth(items, month) { return items.filter(i => i.date && i.date.startsWith(month)); }
+function monthLabel(m) { return new Date(m+'-01').toLocaleString('fr-FR',{month:'long',year:'numeric'}); }
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const CAT_COLORS = {
+  'Uber':'#000','Bolt':'#34d399','Heetch':'#f59e0b','Cabify':'#6366f1','Direct':'#0ea5e9',
+  'Carburant':'#f59e0b','Entretien':'#3b82f6','Assurance':'#8b5cf6','Téléphone':'#06b6d4',
+  'Plateforme':'#ec4899','Péage':'#f97316','Lavage':'#84cc16','Parking':'#a78bfa',
+  'Alimentation':'#10b981','Logement':'#6366f1','Transport':'#0ea5e9','Santé':'#84cc16',
+  'Loisirs':'#f43f5e','Vêtements':'#a78bfa','Abonnement':'#8b5cf6',
+  'Salaire':'#10b981','Allocation':'#3b82f6','Virement':'#06b6d4','Remboursement':'#34d399',
+  'Charge fixe':'#1a56db','Charge variable':'#f97316','Exceptionnel':'#ef4444','Autre':'#64748b'
+};
+function chip(cat,v='') {
+  const c = CAT_COLORS[cat]||'#64748b';
+  return `<span class="chip" style="background:${c}22;color:${c}">${esc(cat)}${v?` <strong>${v}</strong>`:''}</span>`;
+}
+
+function catBreakdown(items) {
+  const cats={};
+  items.forEach(i=>{ cats[i.category||'Autre']=(cats[i.category||'Autre']||0)+(parseFloat(i.amount)||0); });
+  const total=Object.values(cats).reduce((s,v)=>s+v,0);
+  if(!total) return `<div class="empty" style="padding:16px"><p>Aucune données</p></div>`;
+  return Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>{
+    const pct=Math.round((val/total)*100);
+    const c=CAT_COLORS[cat]||'#64748b';
+    return `<div class="cat-row"><div class="cat-row-head"><span>${esc(cat)}</span><span style="font-weight:600">${fmt(val)} (${pct}%)</span></div>
+    <div class="prog-wrap"><div class="prog-bar" style="width:${Math.min(pct,100)}%;background:${c}"></div></div></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let currentPage = 'dashboard';
+const now = new Date();
+let selectedMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+const pageTitles = {
+  dashboard:'Tableau de bord',
+  recettes:'Recettes — Vue globale',depenses:'Dépenses — Vue globale',
+  'vtc-recettes':'Recettes VTC','vtc-depenses':'Dépenses VTC',
+  transferts:'Transferts internes',rentabilite:'Analyse de rentabilité',bilan:'Bilan annuel',
+  comptes:'Comptes bancaires',dettes:'Gestion des dettes',budget:'Budget prévisionnel',
+  'perso-rev':'Revenus personnels (CDI…)','perso-dep':'Dépenses personnelles',
+  documents:'Documents administratifs',alertes:'Alertes',parametres:'Paramètres'
+};
+
+// ═══════════════════════════════════════════════════════════
+//  MONTH SELECT INIT
+// ═══════════════════════════════════════════════════════════
+function initMonthSelect() {
+  const sel = document.getElementById('month-select');
+  sel.innerHTML = '';
+  for (let i=0; i<24; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const v = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const opt = document.createElement('option');
+    opt.value=v; opt.textContent=monthLabel(v);
+    if(v===selectedMonth) opt.selected=true;
+    sel.appendChild(opt);
+  }
+}
+function changeMonth() { selectedMonth=document.getElementById('month-select').value; render(); }
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function nav(page) {
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.nav-item[onclick="nav('${page}')"]`)?.classList.add('active');
+  document.getElementById('page-title').textContent=pageTitles[page]||page;
+  render();
+  if(window.innerWidth<=768) closeSidebar();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open')}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER ROUTER
+// ═══════════════════════════════════════════════════════════
+async function render() {
+  const el = document.getElementById('content');
+  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">Chargement…</div>`;
+  try {
+    switch(currentPage) {
+      case 'dashboard':     el.innerHTML = await renderDashboard(); break;
+      case 'recettes':      el.innerHTML = await renderCombinedRecettes(); break;
+      case 'depenses':      el.innerHTML = await renderCombinedDepenses(); break;
+      case 'vtc-recettes':  el.innerHTML = await renderOps('vtc-recettes','Recette VTC'); break;
+      case 'vtc-depenses':  el.innerHTML = await renderOps('vtc-depenses','Dépense VTC'); break;
+      case 'perso-rev':     el.innerHTML = await renderOps('perso-rev','Revenu personnel'); break;
+      case 'perso-dep':     el.innerHTML = await renderOps('perso-dep','Dépense personnelle'); break;
+      case 'transferts':    el.innerHTML = await renderTransferts(); break;
+      case 'comptes':       el.innerHTML = await renderComptes(); break;
+      case 'dettes':        el.innerHTML = await renderDettes(); break;
+      case 'budget':        el.innerHTML = await renderBudget(); break;
+      case 'rentabilite':   el.innerHTML = await renderRentabilite(); break;
+      case 'bilan':         el.innerHTML = await renderBilan(); break;
+      case 'categories':    el.innerHTML = await renderCatAdmin(); break;
+      case 'documents':     el.innerHTML = await renderDocuments(); break;
+      case 'alertes':       el.innerHTML = await renderAlertes(); break;
+      case 'parametres':    el.innerHTML = await renderParametres(); break;
+      default: el.innerHTML='<p>Page inconnue</p>';
+    }
+    await checkAlerts();
+  } catch(e) {
+    el.innerHTML=`<div class="card" style="border-color:var(--danger)"><strong>Erreur:</strong> ${esc(e.message)}</div>`;
+    console.error(e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════
+async function renderDashboard() {
+  const [vtcRec, vtcDep, pRev, pDep, comptes, dettes, budgets, transferts, alertsCfg] = await Promise.all([
+    load('vtc-recettes'), load('vtc-depenses'), load('perso-rev'), load('perso-dep'),
+    load('comptes'), load('dettes'), load('budgets'), load('transferts'), load('alertes-cfg')
+  ]);
+
+  const mVtcRec = byMonth(vtcRec, selectedMonth);
+  const mVtcDep = byMonth(vtcDep, selectedMonth);
+  const mPRev   = byMonth(pRev,  selectedMonth);
+  const mPDep   = byMonth(pDep,  selectedMonth);
+
+  const ca        = sum(mVtcRec);
+  const charges   = sum(mVtcDep);
+  const netVtc    = ca - charges;
+  const persoRev  = sum(mPRev);
+  const persoExp  = sum(mPDep);
+  const netPerso  = persoRev - persoExp;
+
+  const proAccs   = comptes.filter(c=>c.type==='pro'   && c.active!==false);
+  const persoAccs = comptes.filter(c=>c.type==='perso' && c.active!==false);
+
+  function accBalance(acc) {
+    return (parseFloat(acc.initialBalance)||0)
+      + sum([...vtcRec,...pRev].filter(o=>o.accountId===acc.id))
+      + sum(transferts.filter(t=>t.toAccountId===acc.id))
+      - sum([...vtcDep,...pDep].filter(o=>o.accountId===acc.id))
+      - sum(transferts.filter(t=>t.accountId===acc.id));
+  }
+
+  const totalProBal   = proAccs.reduce((s,a)=>s+accBalance(a),0);
+  const totalPersoBal = persoAccs.reduce((s,a)=>s+accBalance(a),0);
+  const totalDettes   = sum(dettes.filter(d=>d.status!=='soldée'), 'remainingBalance');
+  const totalMens     = sum(dettes.filter(d=>d.status!=='soldée'), 'monthlyPayment');
+
+  const budget  = budgets.find(b=>b.month===selectedMonth);
+  const prevRec = budget?.estimatedRevenue||0;
+  const prevDep = (budget?.fixedCharges||0)+(budget?.variableCharges||0)+(budget?.exceptionalCharges||0);
+  const pctBudget = prevDep>0 ? Math.round((charges/prevDep)*100) : 0;
+
+  // 6-month chart (VTC)
+  const chart6 = [];
+  for(let i=5;i>=0;i--) {
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const m=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    chart6.push({ m, label:d.toLocaleString('fr-FR',{month:'short'}), rec:sum(byMonth(vtcRec,m)), dep:sum(byMonth(vtcDep,m)) });
+  }
+  const maxC = Math.max(...chart6.map(d=>Math.max(d.rec,d.dep)),1);
+
+  // 6-month chart (perso)
+  const chart6p = [];
+  for(let i=5;i>=0;i--) {
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const m=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    chart6p.push({ m, label:d.toLocaleString('fr-FR',{month:'short'}), rec:sum(byMonth(pRev,m)), dep:sum(byMonth(pDep,m)) });
+  }
+  const maxP = Math.max(...chart6p.map(d=>Math.max(d.rec,d.dep)),1);
+
+  const activeAlerts = alertsCfg.filter(a=>a.active && isAlertTriggered(a,{vtcDep,mVtcDep,comptes,dettes,accBalance,budget,charges,ca}));
+
+  const recent = [...mVtcRec.map(t=>({...t,_type:'Recette VTC',_cl:'pos'})),
+                  ...mVtcDep.map(t=>({...t,_type:'Dépense VTC',_cl:'neg'})),
+                  ...mPRev.map(t=>({...t,_type:'Revenu perso',_cl:'pos'})),
+                  ...mPDep.map(t=>({...t,_type:'Dépense perso',_cl:'neg'}))]
+    .sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+
+  function miniChart(data, maxV, colorRec, colorDep) {
+    return `<div class="chart-bars" style="height:80px">
+      ${data.map(d=>`<div class="cbar-wrap">
+        <div style="display:flex;gap:1px;align-items:flex-end;flex:1;width:100%">
+          <div class="cbar" style="height:${Math.round((d.rec/maxV)*76)}%;flex:1;background:${colorRec}" title="Rec: ${fmt(d.rec)}"></div>
+          <div class="cbar" style="height:${Math.round((d.dep/maxV)*76)}%;flex:1;background:${colorDep}" title="Dep: ${fmt(d.dep)}"></div>
+        </div>
+        <div class="clabel">${d.label}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  return `
+  ${activeAlerts.length>0?`
+  <div class="card" style="border-color:var(--warning);margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--warning);margin-bottom:8px">⚠️ ${activeAlerts.length} alerte(s) active(s)</div>
+    ${activeAlerts.map(a=>`<div style="font-size:.81rem;padding:4px 0;border-bottom:1px solid var(--border)">${esc(a.name)}</div>`).join('')}
+    <div style="margin-top:8px"><button class="btn btn-warning btn-sm" onclick="nav('alertes')">Voir les alertes →</button></div>
+  </div>`:''}
+
+  <!-- ══ BLOC VTC ══ -->
+  <div style="border-left:4px solid var(--primary);padding-left:14px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div style="font-size:1rem;font-weight:800;color:var(--primary)">🚗 Activité VTC — ${monthLabel(selectedMonth)}</div>
+      <button class="btn btn-outline btn-sm" onclick="nav('vtc-recettes')">Voir le détail →</button>
+    </div>
+  </div>
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card" style="border-top:3px solid var(--primary)">
+      <div class="card-title">Chiffre d'affaires</div>
+      <div class="stat-value pos">${fmt(ca)}</div>
+      <div class="stat-sub">${mVtcRec.length} course(s)</div>
+      ${prevRec>0?`<div class="prog-wrap" style="margin-top:6px"><div class="prog-bar ${ca>=prevRec?'bar-g':'bar-y'}" style="width:${Math.min(Math.round(ca/prevRec*100),100)}%"></div></div><div class="stat-sub">${Math.round(ca/prevRec*100)}% de l'objectif</div>`:''}
+    </div>
+    <div class="card" style="border-top:3px solid var(--danger)">
+      <div class="card-title">Charges VTC</div>
+      <div class="stat-value neg">${fmt(charges)}</div>
+      <div class="stat-sub">${mVtcDep.length} dépense(s)</div>
+      ${prevDep>0?`<div class="prog-wrap" style="margin-top:6px"><div class="prog-bar ${pctBudget>=100?'bar-r':pctBudget>=80?'bar-y':'bar-g'}" style="width:${Math.min(pctBudget,100)}%"></div></div><div class="stat-sub">${pctBudget}% du budget</div>`:''}
+    </div>
+    <div class="card" style="border-top:3px solid ${netVtc>=0?'var(--success)':'var(--danger)'}">
+      <div class="card-title">Résultat net VTC</div>
+      <div class="stat-value" style="color:${netVtc>=0?'var(--success)':'var(--danger)'}">${fmt(netVtc)}</div>
+      <span class="badge ${netVtc>=0?'bg-green':'bg-red'}">${netVtc>=0?'✓ Bénéfice':'✗ Déficit'}</span>
+      ${ca>0?`<div class="stat-sub">Marge: ${Math.round((netVtc/ca)*100)}%</div>`:''}
+    </div>
+    <div class="card" style="border-top:3px solid var(--info)">
+      <div class="card-title">Solde bancaire pro</div>
+      <div class="stat-value" style="color:${totalProBal>=0?'var(--success)':'var(--danger)'}">${fmt(totalProBal)}</div>
+      <div class="stat-sub">${proAccs.length} compte(s) pro</div>
+      <div class="stat-sub" style="margin-top:4px">Prévision fin mois: ${renderForecastInline(ca,charges)}</div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-title">Évolution VTC — 6 mois</div>
+      ${miniChart(chart6, maxC, 'var(--primary)', '#fca5a5')}
+      <div style="display:flex;gap:10px;margin-top:4px;font-size:.72rem">
+        <span><span style="display:inline-block;width:9px;height:9px;background:var(--primary);border-radius:2px;margin-right:3px"></span>CA</span>
+        <span><span style="display:inline-block;width:9px;height:9px;background:#fca5a5;border-radius:2px;margin-right:3px"></span>Charges</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Répartition charges VTC</div>
+      ${catBreakdown(mVtcDep)}
+    </div>
+  </div>
+
+  <!-- ══ SÉPARATEUR ══ -->
+  <div style="height:2px;background:linear-gradient(90deg,var(--border),transparent);margin-bottom:20px"></div>
+
+  <!-- ══ BLOC PERSO ══ -->
+  <div style="border-left:4px solid var(--success);padding-left:14px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div style="font-size:1rem;font-weight:800;color:var(--success)">🏠 Compte personnel — ${monthLabel(selectedMonth)}</div>
+      <button class="btn btn-outline btn-sm" onclick="nav('perso-rev')">Voir le détail →</button>
+    </div>
+  </div>
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card" style="border-top:3px solid var(--success)">
+      <div class="card-title">Revenus perso (CDI…)</div>
+      <div class="stat-value pos">${fmt(persoRev)}</div>
+      <div class="stat-sub">${mPRev.length} entrée(s)</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--warning)">
+      <div class="card-title">Dépenses perso</div>
+      <div class="stat-value neg">${fmt(persoExp)}</div>
+      <div class="stat-sub">${mPDep.length} dépense(s)</div>
+    </div>
+    <div class="card" style="border-top:3px solid ${netPerso>=0?'var(--success)':'var(--danger)'}">
+      <div class="card-title">Solde mensuel perso</div>
+      <div class="stat-value" style="color:${netPerso>=0?'var(--success)':'var(--danger)'}">${fmt(netPerso)}</div>
+      <span class="badge ${netPerso>=0?'bg-green':'bg-red'}">${netPerso>=0?'✓ Excédent':'✗ Déficit'}</span>
+    </div>
+    <div class="card" style="border-top:3px solid var(--info)">
+      <div class="card-title">Solde bancaire perso</div>
+      <div class="stat-value" style="color:${totalPersoBal>=0?'var(--success)':'var(--danger)'}">${fmt(totalPersoBal)}</div>
+      <div class="stat-sub">${persoAccs.length} compte(s)</div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">Évolution perso — 6 mois</div>
+      ${miniChart(chart6p, maxP, '#34d399', '#fbbf24')}
+      <div style="display:flex;gap:10px;margin-top:4px;font-size:.72rem">
+        <span><span style="display:inline-block;width:9px;height:9px;background:#34d399;border-radius:2px;margin-right:3px"></span>Revenus</span>
+        <span><span style="display:inline-block;width:9px;height:9px;background:#fbbf24;border-radius:2px;margin-right:3px"></span>Dépenses</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Répartition dépenses perso</div>
+      ${catBreakdown(mPDep)}
+    </div>
+  </div>
+
+  <!-- ══ SYNTHÈSE GLOBALE ══ -->
+  <div style="border-left:4px solid var(--text-muted);padding-left:14px;margin-bottom:8px">
+    <div style="font-size:1rem;font-weight:800;color:var(--text-muted)">📊 Synthèse globale</div>
+  </div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">Revenus totaux</div>
+      <div class="stat-value pos">${fmt(ca + persoRev)}</div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-top:6px">
+        <div>VTC: <strong class="pos">${fmt(ca)}</strong></div>
+        <div>Perso: <strong class="pos">${fmt(persoRev)}</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dépenses totales</div>
+      <div class="stat-value neg">${fmt(charges + persoExp)}</div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-top:6px">
+        <div>VTC: <strong class="neg">${fmt(charges)}</strong></div>
+        <div>Perso: <strong class="neg">${fmt(persoExp)}</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dettes restantes</div>
+      <div class="stat-value neg">${fmt(totalDettes)}</div>
+      <div class="stat-sub">${dettes.filter(d=>d.status!=='soldée').length} dette(s) · ${fmt(totalMens)}/mois</div>
+    </div>
+  </div>
+
+  <!-- ══ DERNIÈRES OPÉRATIONS ══ -->
+  <div class="card">
+    <div class="sec-head">
+      <h2>Dernières opérations</h2>
+      <div class="btn-group">
+        <button class="btn btn-outline btn-sm" onclick="nav('recettes')">Toutes les recettes</button>
+        <button class="btn btn-outline btn-sm" onclick="nav('depenses')">Toutes les dépenses</button>
+      </div>
+    </div>
+    ${recent.length===0?`<div class="empty"><div class="eicon">📭</div><p>Aucune opération ce mois</p></div>`:
+    `<div class="table-wrap"><table>
+      <tr><th>Date</th><th>Type</th><th>Libellé</th><th>Catégorie</th><th>Montant</th></tr>
+      ${recent.map(t=>`<tr>
+        <td>${fmtD(t.date)}</td>
+        <td><span class="badge ${t._cl==='pos'?'bg-green':'bg-red'}">${t._type}</span></td>
+        <td>${esc(t.label||'—')}</td>
+        <td>${chip(t.category||'Autre')}</td>
+        <td class="${t._cl}">${fmt(t.amount)}</td>
+      </tr>`).join('')}
+    </table></div>`}
+  </div>`;
+}
+
+function renderForecastInline(ca, charges) {
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  const dayPassed = today.getDate();
+  if(!dayPassed || !ca) return '—';
+  const projNet = (ca/dayPassed - charges/dayPassed) * daysInMonth;
+  return `<span style="font-weight:700;color:${projNet>=0?'var(--success)':'var(--danger)'}">${fmt(projNet)}</span>`;
+}
+
+function renderForecast(ca, charges, month, allRec, allDep) {
+  const today = new Date();
+  const d = new Date(month+'-01');
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  const dayPassed = month === selectedMonth ? today.getDate() : daysInMonth;
+  if(dayPassed===0) return `<div class="stat-sub">—</div>`;
+  const projNet = (ca/dayPassed - charges/dayPassed) * daysInMonth;
+  return `<div class="stat-value" style="font-size:1.2rem;color:${projNet>=0?'var(--success)':'var(--danger)'}">${fmt(projNet)}</div>
+    <div class="stat-sub">Proj. rec: ${fmt(ca/dayPassed*daysInMonth)}</div>
+    <div class="stat-sub">Proj. dep: ${fmt(charges/dayPassed*daysInMonth)}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMBINED RECETTES (VTC + Perso, onglets)
+// ═══════════════════════════════════════════════════════════
+let recettesTab = 'vtc';
+async function renderCombinedRecettes() {
+  const [vtcRec, pRev, comptes] = await Promise.all([load('vtc-recettes'), load('perso-rev'), load('comptes')]);
+  const mVtc  = byMonth(vtcRec, selectedMonth);
+  const mPerso= byMonth(pRev,   selectedMonth);
+  const totalVtc   = sum(mVtc);
+  const totalPerso = sum(mPerso);
+  const totalAll   = totalVtc + totalPerso;
+
+  const tabHtml = `
+  <div class="tabs">
+    <button class="tab ${recettesTab==='vtc'?'active':''}"    onclick="recettesTab='vtc';render()">🚗 Recettes VTC (${fmt(totalVtc)})</button>
+    <button class="tab ${recettesTab==='perso'?'active':''}"  onclick="recettesTab='perso';render()">🏠 Revenus perso (${fmt(totalPerso)})</button>
+    <button class="tab ${recettesTab==='all'?'active':''}"    onclick="recettesTab='all';render()">📊 Vue globale (${fmt(totalAll)})</button>
+  </div>`;
+
+  const statsHtml = `
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card" style="border-top:3px solid var(--primary)">
+      <div class="card-title">🚗 CA VTC</div>
+      <div class="stat-value pos">${fmt(totalVtc)}</div>
+      <div class="stat-sub">${mVtc.length} opération(s)</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--success)">
+      <div class="card-title">🏠 Revenus perso</div>
+      <div class="stat-value pos">${fmt(totalPerso)}</div>
+      <div class="stat-sub">${mPerso.length} entrée(s)</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--info)">
+      <div class="card-title">📊 Total revenus</div>
+      <div class="stat-value pos">${fmt(totalAll)}</div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px">VTC: ${totalAll>0?Math.round(totalVtc/totalAll*100):0}% · Perso: ${totalAll>0?Math.round(totalPerso/totalAll*100):0}%</div>
+      <div class="prog-wrap" style="margin-top:6px"><div class="prog-bar bar-b" style="width:${totalAll>0?Math.round(totalVtc/totalAll*100):0}%"></div></div>
+    </div>
+  </div>`;
+
+  function opTable(items, store, label, isVtc) {
+    const catOpts = isVtc
+      ? ['Uber','Bolt','Heetch','Cabify','Direct','Autre']
+      : ['Salaire','Allocation','Virement','Remboursement','Autre'];
+    const sid = 'search-comb-'+store;
+    const cid = 'cat-comb-'+store;
+    return `
+    <div class="sec-head">
+      <h2 style="color:${isVtc?'var(--primary)':'var(--success)'}">${isVtc?'🚗':'🏠'} ${label} — ${monthLabel(selectedMonth)}</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="openOpModal('${store}','${label}')">+ Ajouter</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCsv('${store}')">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input id="${sid}" type="search" placeholder="Rechercher…" oninput="filterTable2('${store}','${sid}','${cid}')" style="flex:1;min-width:150px">
+      <select id="${cid}" onchange="filterTable2('${store}','${sid}','${cid}')">
+        <option value="">Toutes catégories</option>
+        ${catOpts.map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
+    </div>
+    ${items.length===0?`<div class="empty"><div class="eicon">📭</div><p>Aucune entrée ce mois</p></div>`:
+    `<div class="table-wrap"><table id="tbl2-${store}">
+      <tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Compte</th><th>Montant</th><th></th></tr>
+      ${items.map(t=>{
+        const acc=comptes.find(c=>c.id===t.accountId);
+        return `<tr data-label="${esc((t.label||'').toLowerCase())}" data-cat="${esc(t.category||'')}">
+          <td>${fmtD(t.date)}</td><td>${esc(t.label||'—')}</td>
+          <td>${chip(t.category||'Autre')}</td>
+          <td style="font-size:.78rem;color:var(--text-muted)">${acc?esc(acc.name):'—'}</td>
+          <td class="pos">${fmt(t.amount)}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-outline btn-sm" onclick="editOp('${store}','${t.id}','${label}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteOp('${store}','${t.id}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </table></div>`}`;
+  }
+
+  let body = '';
+  if(recettesTab==='vtc') {
+    body = `<div class="card">${opTable(mVtc,'vtc-recettes','Recette VTC',true)}</div>`;
+  } else if(recettesTab==='perso') {
+    body = `<div class="card">${opTable(mPerso,'perso-rev','Revenu personnel',false)}</div>`;
+  } else {
+    const all = [...mVtc.map(t=>({...t,_src:'VTC'})),...mPerso.map(t=>({...t,_src:'Perso'}))].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    body = `<div class="card">
+      <div class="sec-head"><h2>Tous les revenus — ${monthLabel(selectedMonth)}</h2></div>
+      ${all.length===0?`<div class="empty"><div class="eicon">📭</div><p>Aucune entrée ce mois</p></div>`:
+      `<div class="table-wrap"><table>
+        <tr><th>Date</th><th>Source</th><th>Libellé</th><th>Catégorie</th><th>Montant</th></tr>
+        ${all.map(t=>`<tr>
+          <td>${fmtD(t.date)}</td>
+          <td><span class="badge ${t._src==='VTC'?'bg-blue':'bg-green'}">${t._src==='VTC'?'🚗 VTC':'🏠 Perso'}</span></td>
+          <td>${esc(t.label||'—')}</td><td>${chip(t.category||'Autre')}</td>
+          <td class="pos">${fmt(t.amount)}</td>
+        </tr>`).join('')}
+      </table></div>`}
+      <div class="grid g2" style="margin-top:14px">
+        <div><div class="card-title" style="margin-bottom:8px">Recettes VTC par plateforme</div>${catBreakdown(mVtc)}</div>
+        <div><div class="card-title" style="margin-bottom:8px">Revenus perso par catégorie</div>${catBreakdown(mPerso)}</div>
+      </div>
+    </div>`;
+  }
+
+  return statsHtml + tabHtml + body;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMBINED DEPENSES (VTC + Perso, onglets)
+// ═══════════════════════════════════════════════════════════
+let depensesTab = 'vtc';
+async function renderCombinedDepenses() {
+  const [vtcDep, pDep, comptes, vtcRec, pRev, transferts, allCats] = await Promise.all([
+    load('vtc-depenses'), load('perso-dep'), load('comptes'),
+    load('vtc-recettes'), load('perso-rev'), load('transferts'), load('categories')
+  ]);
+  const mVtc  = byMonth(vtcDep, selectedMonth);
+  const mPerso= byMonth(pDep,   selectedMonth);
+  const totalVtc   = sum(mVtc);
+  const totalPerso = sum(mPerso);
+  const totalAll   = totalVtc + totalPerso;
+
+  // Calcul des soldes courants par compte
+  function accBalance(acc) {
+    return (parseFloat(acc.initialBalance)||0)
+      + sum([...vtcRec,...pRev].filter(o=>o.accountId===acc.id))
+      + sum(transferts.filter(t=>t.toAccountId===acc.id))
+      - sum([...vtcDep,...pDep].filter(o=>o.accountId===acc.id))
+      - sum(transferts.filter(t=>t.accountId===acc.id));
+  }
+  const proAccs   = comptes.filter(c=>c.type==='pro'   && c.active!==false);
+  const persoAccs = comptes.filter(c=>c.type==='perso' && c.active!==false);
+  const totalProBal   = proAccs.reduce((s,a)=>s+accBalance(a),0);
+  const totalPersoBal = persoAccs.reduce((s,a)=>s+accBalance(a),0);
+
+  // Bandeaux de solde
+  function balanceBanner(accs, total, color, label) {
+    if(!accs.length) return `<div class="card" style="border-left:4px solid ${color};padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:1.3rem">🏦</span>
+      <span style="font-size:.82rem;color:var(--text-muted)">${label} — aucun compte enregistré. <button class="btn btn-outline btn-sm" onclick="nav('comptes')">Ajouter un compte</button></span>
+    </div>`;
+    return `<div style="border:1px solid ${color};border-left:4px solid ${color};border-radius:10px;padding:11px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#fff">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.3rem">🏦</span>
+        <div>
+          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${label}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px">
+            ${accs.map(a=>`<span style="font-size:.8rem;color:var(--text-muted)">${esc(a.name)}: <strong style="color:${accBalance(a)>=0?'var(--success)':'var(--danger)'}">${fmt(accBalance(a))}</strong></span>`).join('<span style="color:var(--border)">·</span>')}
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Solde total</div>
+        <div style="font-size:1.3rem;font-weight:800;color:${total>=0?color:'var(--danger)'};">${fmt(total)}</div>
+      </div>
+    </div>`;
+  }
+
+  const tabHtml = `
+  <div class="tabs">
+    <button class="tab ${depensesTab==='vtc'?'active':''}"   onclick="depensesTab='vtc';render()">🚗 Charges VTC (${fmt(totalVtc)})</button>
+    <button class="tab ${depensesTab==='perso'?'active':''}" onclick="depensesTab='perso';render()">🏠 Dépenses perso (${fmt(totalPerso)})</button>
+    <button class="tab ${depensesTab==='all'?'active':''}"   onclick="depensesTab='all';render()">📊 Vue globale (${fmt(totalAll)})</button>
+  </div>`;
+
+  const statsHtml = `
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card" style="border-top:3px solid var(--danger)">
+      <div class="card-title">🚗 Charges VTC</div>
+      <div class="stat-value neg">${fmt(totalVtc)}</div>
+      <div class="stat-sub">${mVtc.length} dépense(s)</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--warning)">
+      <div class="card-title">🏠 Dépenses perso</div>
+      <div class="stat-value neg">${fmt(totalPerso)}</div>
+      <div class="stat-sub">${mPerso.length} dépense(s)</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--text-muted)">
+      <div class="card-title">📊 Total dépenses</div>
+      <div class="stat-value neg">${fmt(totalAll)}</div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px">VTC: ${totalAll>0?Math.round(totalVtc/totalAll*100):0}% · Perso: ${totalAll>0?Math.round(totalPerso/totalAll*100):0}%</div>
+      <div class="prog-wrap" style="margin-top:6px"><div class="prog-bar bar-r" style="width:${totalAll>0?Math.round(totalVtc/totalAll*100):0}%"></div></div>
+    </div>
+  </div>`;
+
+  function opTable(items, store, label, isVtc) {
+    const parentCats = allCats.filter(c => c.type === store && !c.parentId);
+    const catNames = parentCats.map(c => c.name);
+    const sid = 'search-dcomb-'+store;
+    const cid = 'cat-dcomb-'+store;
+    return `
+    <div class="sec-head">
+      <h2 style="color:${isVtc?'var(--danger)':'var(--warning)'}">${isVtc?'🚗':'🏠'} ${label} — ${monthLabel(selectedMonth)}</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="openOpModal('${store}','${label}')">+ Ajouter</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCsv('${store}')">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input id="${sid}" type="search" placeholder="Rechercher…" oninput="filterTable2('${store}','${sid}','${cid}')" style="flex:1;min-width:150px">
+      <select id="${cid}" onchange="filterTable2('${store}','${sid}','${cid}')">
+        <option value="">Toutes catégories</option>
+        ${catNames.map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
+    </div>
+    ${items.length===0?`<div class="empty"><div class="eicon">📭</div><p>Aucune dépense ce mois</p></div>`:
+    `<div class="table-wrap"><table id="tbl2-${store}">
+      <tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Compte</th><th>Montant</th><th></th></tr>
+      ${items.map(t=>{
+        const acc=comptes.find(c=>c.id===t.accountId);
+        return `<tr data-label="${esc((t.label||'').toLowerCase())}" data-cat="${esc(t.category||'')}">
+          <td>${fmtD(t.date)}</td><td>${esc(t.label||'—')}</td>
+          <td>${chip(t.category||'—')}${t.subCategory?`<span style="display:block;font-size:.72rem;color:var(--text-muted);margin-top:2px">↳ ${esc(t.subCategory)}</span>`:''}</td>
+          <td style="font-size:.78rem;color:var(--text-muted)">${acc?esc(acc.name):'—'}</td>
+          <td class="neg">${fmt(t.amount)}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-outline btn-sm" onclick="editOp('${store}','${t.id}','${label}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteOp('${store}','${t.id}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </table></div>`}`;
+  }
+
+  let body = '';
+  if(depensesTab==='vtc') {
+    body = balanceBanner(proAccs, totalProBal, 'var(--primary)', 'Solde comptes professionnels')
+         + `<div class="card">${opTable(mVtc,'vtc-depenses','Charge VTC',true)}</div>`;
+  } else if(depensesTab==='perso') {
+    body = balanceBanner(persoAccs, totalPersoBal, 'var(--success)', 'Solde comptes personnels')
+         + `<div class="card">${opTable(mPerso,'perso-dep','Dépense personnelle',false)}</div>`;
+  } else {
+    const all = [...mVtc.map(t=>({...t,_src:'VTC'})),...mPerso.map(t=>({...t,_src:'Perso'}))].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    body = `<div class="grid g2" style="margin-bottom:10px">
+      <div>${balanceBanner(proAccs,   totalProBal,   'var(--primary)', 'Comptes pro')}</div>
+      <div>${balanceBanner(persoAccs, totalPersoBal, 'var(--success)', 'Comptes perso')}</div>
+    </div>
+    <div class="card">
+      <div class="sec-head"><h2>Toutes les dépenses — ${monthLabel(selectedMonth)}</h2></div>
+      ${all.length===0?`<div class="empty"><div class="eicon">📭</div><p>Aucune dépense ce mois</p></div>`:
+      `<div class="table-wrap"><table>
+        <tr><th>Date</th><th>Source</th><th>Libellé</th><th>Catégorie</th><th>Montant</th></tr>
+        ${all.map(t=>`<tr>
+          <td>${fmtD(t.date)}</td>
+          <td><span class="badge ${t._src==='VTC'?'bg-red':'bg-yellow'}">${t._src==='VTC'?'🚗 VTC':'🏠 Perso'}</span></td>
+          <td>${esc(t.label||'—')}</td><td>${chip(t.category||'Autre')}</td>
+          <td class="neg">${fmt(t.amount)}</td>
+        </tr>`).join('')}
+      </table></div>`}
+      <div class="grid g2" style="margin-top:14px">
+        <div><div class="card-title" style="margin-bottom:8px">Charges VTC par catégorie</div>${catBreakdown(mVtc)}</div>
+        <div><div class="card-title" style="margin-bottom:8px">Dépenses perso par catégorie</div>${catBreakdown(mPerso)}</div>
+      </div>
+    </div>`;
+  }
+
+  return statsHtml + tabHtml + body;
+}
+
+function filterTable2(store, searchId, catId) {
+  const q   = (document.getElementById(searchId)?.value||'').toLowerCase();
+  const cat = (document.getElementById(catId)?.value||'').toLowerCase();
+  document.querySelectorAll(`#tbl2-${store} tr[data-label]`).forEach(row => {
+    const lbl = row.dataset.label||'';
+    const c   = row.dataset.cat||'';
+    row.style.display = ((!q||lbl.includes(q))&&(!cat||c.toLowerCase()===cat)) ? '' : 'none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  OPERATIONS (recettes & dépenses)
+// ═══════════════════════════════════════════════════════════
+async function renderOps(store, label) {
+  const [all, comptes] = await Promise.all([load(store), load('comptes')]);
+  const items = byMonth(all, selectedMonth);
+  const isIncome = store.includes('rev') || store.includes('recettes');
+  const total = sum(items);
+
+  const catOpts = store==='vtc-recettes'
+    ? ['Uber','Bolt','Heetch','Cabify','Direct','Autre']
+    : store==='vtc-depenses'
+      ? ['Carburant','Entretien','Assurance','Téléphone','Plateforme','Péage','Lavage','Parking','Charge fixe','Charge variable','Exceptionnel','Autre']
+      : store==='perso-rev'
+        ? ['Salaire','Allocation','Virement','Remboursement','Autre']
+        : ['Alimentation','Logement','Transport','Santé','Loisirs','Vêtements','Abonnement','Autre'];
+
+  // filter state
+  const searchId = 'search-'+store;
+  const catId = 'cat-filter-'+store;
+
+  return `
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="card-title">Total du mois</div><div class="stat-value ${isIncome?'pos':'neg'}">${fmt(total)}</div></div>
+    <div class="card"><div class="card-title">Nb opérations</div><div class="stat-value">${items.length}</div></div>
+    <div class="card"><div class="card-title">Moyenne/opération</div><div class="stat-value">${items.length?fmt(total/items.length):fmt(0)}</div></div>
+  </div>
+  <div class="card">
+    <div class="sec-head">
+      <h2>${label}s — ${monthLabel(selectedMonth)}</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="openOpModal('${store}','${label}')">+ Ajouter</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCsv('${store}')">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input id="${searchId}" type="search" placeholder="Rechercher…" oninput="filterTable('${store}')" style="flex:1;min-width:150px">
+      <select id="${catId}" onchange="filterTable('${store}')">
+        <option value="">Toutes catégories</option>
+        ${catOpts.map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
+    </div>
+    <div id="table-${store}">
+    ${items.length===0?`<div class="empty"><div class="eicon">📭</div><p>Aucune entrée ce mois</p></div>`:
+    `<div class="table-wrap"><table id="tbl-${store}">
+      <tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Compte</th><th>Montant</th><th>Note</th><th></th></tr>
+      ${items.map(t=>{
+        const acc = comptes.find(c=>c.id===t.accountId);
+        return `<tr data-label="${esc((t.label||'').toLowerCase())}" data-cat="${esc(t.category||'')}">
+          <td>${fmtD(t.date)}</td>
+          <td>${esc(t.label||'—')}</td>
+          <td>${chip(t.category||'Autre')}</td>
+          <td style="font-size:.78rem;color:var(--text-muted)">${acc?esc(acc.name):'—'}</td>
+          <td class="${isIncome?'pos':'neg'}">${fmt(t.amount)}</td>
+          <td style="font-size:.78rem;color:var(--text-muted)">${esc(t.note||'')}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-outline btn-sm" onclick="editOp('${store}','${t.id}','${label}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteOp('${store}','${t.id}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </table></div>`}
+    </div>
+    <div style="margin-top:16px"><div class="card-title">Répartition par catégorie</div>${catBreakdown(items)}</div>
+  </div>`;
+}
+
+function filterTable(store) {
+  const q = (document.getElementById('search-'+store)?.value||'').toLowerCase();
+  const cat = (document.getElementById('cat-filter-'+store)?.value||'').toLowerCase();
+  document.querySelectorAll(`#tbl-${store} tr[data-label]`).forEach(row => {
+    const lbl = row.dataset.label||'';
+    const c   = row.dataset.cat||'';
+    row.style.display = ((!q||lbl.includes(q))&&(!cat||c.toLowerCase()===cat)) ? '' : 'none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  OP MODAL
+// ═══════════════════════════════════════════════════════════
+let _modalCats = [];
+
+async function openOpModal(store, label, existingId=null) {
+  const isDepense = store === 'vtc-depenses' || store === 'perso-dep';
+  const [comptes, cats] = await Promise.all([load('comptes'), load('categories')]);
+  _modalCats = cats;
+  const existing = existingId ? (await load(store)).find(i=>i.id===existingId) : null;
+  const t = existing || {};
+  const relevantAccounts = comptes.filter(c=>store.startsWith('vtc')?c.type==='pro':c.type==='perso');
+
+  let categoryHtml = '';
+  if(isDepense) {
+    const parentCats = cats.filter(c => c.type === store && !c.parentId);
+    const currentParentCat = parentCats.find(c => c.name === t.category);
+    const subcats = currentParentCat ? cats.filter(c => c.type === store && c.parentId === currentParentCat.id) : [];
+    const currentSub = subcats.find(c => c.name === t.subCategory);
+    categoryHtml = `
+    <div class="form-row">
+      <div class="fg">
+        <label>Catégorie</label>
+        <select name="category-id" id="modal-cat-select" onchange="updateSubcatSelect(this.value,'${store}')">
+          <option value="">— choisir —</option>
+          ${parentCats.map(c=>`<option value="${c.id}"${currentParentCat?.id===c.id?' selected':''}>${esc(c.name)}</option>`).join('')}
+          <option value="__new__">➕ Nouvelle catégorie…</option>
+        </select>
+        <div id="modal-new-cat-wrap" style="display:none;margin-top:6px;display:flex;gap:6px;align-items:center">
+          <input id="modal-new-cat-input" type="text" placeholder="Nom de la catégorie" style="flex:1">
+          <button type="button" class="btn btn-primary btn-sm" onclick="createCategoryInline('${store}',null)">Créer</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Sous-catégorie <span style="font-size:.74rem;color:var(--text-muted)">(optionnel)</span></label>
+        <select name="subcat-id" id="modal-subcat-select" onchange="handleSubcatChange()">
+          <option value="">— aucune —</option>
+          ${subcats.map(c=>`<option value="${c.id}"${currentSub?.id===c.id?' selected':''}>${esc(c.name)}</option>`).join('')}
+          ${currentParentCat?`<option value="__new__">➕ Nouvelle sous-catégorie…</option>`:''}
+        </select>
+        <div id="modal-new-subcat-wrap" style="display:none;margin-top:6px;display:flex;gap:6px;align-items:center">
+          <input id="modal-new-subcat-input" type="text" placeholder="Nom de la sous-catégorie" style="flex:1">
+          <button type="button" class="btn btn-primary btn-sm" onclick="createCategoryInline('${store}',document.getElementById('modal-cat-select').value)">Créer</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Compte</label>
+      <select name="accountId"><option value="">— aucun —</option>${relevantAccounts.map(c=>`<option value="${c.id}"${t.accountId===c.id?' selected':''}>${esc(c.name)}</option>`).join('')}</select>
+    </div>`;
+  } else {
+    const catOpts = store==='vtc-recettes'
+      ? ['Uber','Bolt','Heetch','Cabify','Direct','Autre']
+      : store==='perso-rev'
+        ? ['Salaire','Allocation','Virement','Remboursement','Autre']
+        : ['Alimentation','Logement','Transport','Santé','Loisirs','Vêtements','Abonnement','Autre'];
+    categoryHtml = `
+    <div class="form-row">
+      <div class="fg"><label>Catégorie</label><select name="category">${catOpts.map(c=>`<option value="${c}"${t.category===c?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="fg"><label>Compte</label><select name="accountId"><option value="">— aucun —</option>${relevantAccounts.map(c=>`<option value="${c.id}"${t.accountId===c.id?' selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+    </div>`;
+  }
+
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>${existing?'Modifier':'Ajouter'} — ${label}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveOp(event,'${store}','${existingId||''}')">
+      <div class="form-row">
+        <div class="fg"><label>Date *</label><input type="date" name="date" value="${t.date||selectedMonth+'-01'}" required></div>
+        <div class="fg"><label>Montant (€) *</label><input type="number" name="amount" step="0.01" min="0" value="${t.amount||''}" required placeholder="0.00"></div>
+      </div>
+      <div class="fg"><label>Libellé *</label><input type="text" name="label" value="${esc(t.label||'')}" required placeholder="Description"></div>
+      ${categoryHtml}
+      <div class="fg"><label>Note</label><textarea name="note" rows="2">${esc(t.note||'')}</textarea></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">${existing?'Modifier':'Enregistrer'}</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+function updateSubcatSelect(parentId, store) {
+  const newCatWrap = document.getElementById('modal-new-cat-wrap');
+  const subcatSel  = document.getElementById('modal-subcat-select');
+  const newSubWrap = document.getElementById('modal-new-subcat-wrap');
+  if(parentId === '__new__') {
+    if(newCatWrap) newCatWrap.style.display = 'flex';
+    if(subcatSel)  subcatSel.innerHTML = '<option value="">— aucune —</option>';
+    return;
+  }
+  if(newCatWrap) newCatWrap.style.display = 'none';
+  if(newSubWrap) newSubWrap.style.display = 'none';
+  if(!parentId || !subcatSel) return;
+  const subcats = _modalCats.filter(c => c.type === store && c.parentId === parentId);
+  subcatSel.innerHTML = '<option value="">— aucune —</option>'
+    + subcats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')
+    + '<option value="__new__">➕ Nouvelle sous-catégorie…</option>';
+}
+
+function handleSubcatChange() {
+  const sel = document.getElementById('modal-subcat-select');
+  const wrap = document.getElementById('modal-new-subcat-wrap');
+  if(sel && wrap) wrap.style.display = sel.value === '__new__' ? 'flex' : 'none';
+}
+
+async function createCategoryInline(store, parentId) {
+  const inputId = parentId && parentId !== '__new__' ? 'modal-new-subcat-input' : 'modal-new-cat-input';
+  const input = document.getElementById(inputId);
+  const name = input?.value?.trim();
+  if(!name) { toast('Entrez un nom de catégorie.','danger'); return; }
+  const isSubcat = !!(parentId && parentId !== '__new__');
+  const cat = { id: uid(), type: store, name, parentId: isSubcat ? parentId : null };
+  await save('categories', cat);
+  _modalCats.push(cat);
+  if(isSubcat) {
+    const sel = document.getElementById('modal-subcat-select');
+    if(sel) {
+      const opt = new Option(name, cat.id, true, true);
+      const newOpt = [...sel.options].find(o=>o.value==='__new__');
+      sel.insertBefore(opt, newOpt||null);
+      sel.value = cat.id;
+    }
+    const wrap = document.getElementById('modal-new-subcat-wrap');
+    if(wrap) wrap.style.display = 'none';
+  } else {
+    const sel = document.getElementById('modal-cat-select');
+    if(sel) {
+      const opt = new Option(name, cat.id, true, true);
+      const newOpt = [...sel.options].find(o=>o.value==='__new__');
+      sel.insertBefore(opt, newOpt||null);
+      sel.value = cat.id;
+    }
+    const wrap = document.getElementById('modal-new-cat-wrap');
+    if(wrap) wrap.style.display = 'none';
+    updateSubcatSelect(cat.id, store);
+  }
+  if(input) input.value = '';
+  toast('Catégorie créée !','success');
+}
+
+async function saveOp(e, store, existingId) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const isDepense = store === 'vtc-depenses' || store === 'perso-dep';
+  let category = '', subCategory = '';
+  if(isDepense) {
+    const catId    = fd.get('category-id');
+    const subCatId = fd.get('subcat-id');
+    const catObj    = _modalCats.find(c => c.id === catId);
+    const subCatObj = _modalCats.find(c => c.id === subCatId);
+    category    = catObj?.name    || '';
+    subCategory = subCatObj?.name || '';
+  } else {
+    category = fd.get('category') || '';
+  }
+  const item = {
+    id: existingId || uid(),
+    date: fd.get('date'),
+    amount: parseFloat(fd.get('amount')),
+    label: fd.get('label'),
+    category,
+    ...(subCategory ? {subCategory} : {}),
+    accountId: fd.get('accountId') || null,
+    note: fd.get('note')
+  };
+  await save(store, item);
+  closeModal(); toast('Enregistré !','success'); render();
+}
+
+async function editOp(store, id, label) { await openOpModal(store, label, id); }
+async function deleteOp(store, id) {
+  if(!confirm('Supprimer cette entrée ?')) return;
+  await remove(store, id); toast('Supprimé.','danger'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TRANSFERTS
+// ═══════════════════════════════════════════════════════════
+async function renderTransferts() {
+  const [all, comptes] = await Promise.all([load('transferts'), load('comptes')]);
+  const items = byMonth(all, selectedMonth).sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  return `
+  <div class="card" style="margin-bottom:14px;border-color:var(--info)">
+    <p style="font-size:.85rem;color:var(--text-muted)">⚠️ Les transferts internes entre comptes <strong>ne sont pas comptabilisés</strong> dans le résultat d'activité. Ils représentent uniquement des mouvements entre vos propres comptes.</p>
+  </div>
+  <div class="card">
+    <div class="sec-head"><h2>Transferts — ${monthLabel(selectedMonth)}</h2>
+      <button class="btn btn-primary btn-sm" onclick="openTransfertModal()">+ Ajouter</button>
+    </div>
+    ${items.length===0?`<div class="empty"><div class="eicon">🔄</div><p>Aucun transfert ce mois</p></div>`:
+    `<div class="table-wrap"><table>
+      <tr><th>Date</th><th>De</th><th>Vers</th><th>Montant</th><th>Note</th><th></th></tr>
+      ${items.map(t=>{
+        const from = comptes.find(c=>c.id===t.accountId);
+        const to   = comptes.find(c=>c.id===t.toAccountId);
+        return `<tr>
+          <td>${fmtD(t.date)}</td>
+          <td><span class="badge bg-red">${from?esc(from.name):'—'}</span></td>
+          <td><span class="badge bg-green">${to?esc(to.name):'—'}</span></td>
+          <td style="font-weight:600">${fmt(t.amount)}</td>
+          <td style="font-size:.78rem;color:var(--text-muted)">${esc(t.note||'')}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteTransfert('${t.id}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </table></div>`}
+  </div>`;
+}
+
+async function openTransfertModal() {
+  const comptes = await load('comptes');
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>Nouveau transfert interne</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveTransfert(event)">
+      <div class="form-row">
+        <div class="fg"><label>Date *</label><input type="date" name="date" value="${selectedMonth+'-01'}" required></div>
+        <div class="fg"><label>Montant (€) *</label><input type="number" name="amount" step="0.01" min="0" required placeholder="0.00"></div>
+      </div>
+      <div class="fg"><label>De (compte source) *</label><select name="accountId" required><option value="">— choisir —</option>${comptes.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.type})</option>`).join('')}</select></div>
+      <div class="fg"><label>Vers (compte destination) *</label><select name="toAccountId" required><option value="">— choisir —</option>${comptes.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.type})</option>`).join('')}</select></div>
+      <div class="fg"><label>Note</label><textarea name="note" rows="2"></textarea></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function saveTransfert(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  if(fd.get('accountId')===fd.get('toAccountId')) { toast('Le compte source et destination doivent être différents !','danger'); return; }
+  const item = { id:uid(), date:fd.get('date'), amount:parseFloat(fd.get('amount')), accountId:fd.get('accountId'), toAccountId:fd.get('toAccountId'), note:fd.get('note') };
+  await save('transferts', item);
+  closeModal(); toast('Transfert enregistré !','success'); render();
+}
+
+async function deleteTransfert(id) {
+  if(!confirm('Supprimer ce transfert ?')) return;
+  await remove('transferts', id); toast('Supprimé.','danger'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMPTES
+// ═══════════════════════════════════════════════════════════
+async function renderComptes() {
+  const [comptes, vtcRec, vtcDep, pRev, pDep, transferts] = await Promise.all([
+    load('comptes'), load('vtc-recettes'), load('vtc-depenses'),
+    load('perso-rev'), load('perso-dep'), load('transferts')
+  ]);
+
+  function accBal(acc) {
+    const init = parseFloat(acc.initialBalance)||0;
+    const recIn = sum([...vtcRec,...pRev].filter(o=>o.accountId===acc.id));
+    const depOut = sum([...vtcDep,...pDep].filter(o=>o.accountId===acc.id));
+    const trIn = sum(transferts.filter(t=>t.toAccountId===acc.id));
+    const trOut = sum(transferts.filter(t=>t.accountId===acc.id));
+    return init + recIn - depOut + trIn - trOut;
+  }
+
+  const pro = comptes.filter(c=>c.type==='pro');
+  const perso = comptes.filter(c=>c.type==='perso');
+
+  function renderAccList(list, title, color) {
+    if(!list.length) return `<div class="empty"><div class="eicon">🏦</div><p>Aucun compte ${title}</p></div>`;
+    return list.map(acc=>{
+      const bal = accBal(acc);
+      return `<div class="acc-card" style="margin-bottom:10px;border-left:4px solid ${color}">
+        <div class="acc-icon">${acc.type==='pro'?'💼':'🏠'}</div>
+        <div class="acc-info">
+          <div class="acc-name">${esc(acc.name)}</div>
+          <div class="acc-type">${acc.type==='pro'?'Compte professionnel':'Compte personnel'} · Solde initial: ${fmt(acc.initialBalance)}</div>
+          ${acc.note?`<div style="font-size:.76rem;color:var(--text-muted)">${esc(acc.note)}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div class="acc-balance" style="color:${bal>=0?'var(--success)':'var(--danger)'}">${fmt(bal)}</div>
+          <div style="display:flex;gap:5px;margin-top:6px;justify-content:flex-end">
+            <button class="btn btn-outline btn-sm" onclick="editCompte('${acc.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCompte('${acc.id}')">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const totalPro = pro.reduce((s,a)=>s+accBal(a),0);
+  const totalPerso = perso.reduce((s,a)=>s+accBal(a),0);
+
+  return `
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">Total comptes pro</div>
+      <div class="stat-value ${totalPro>=0?'pos':'neg'}">${fmt(totalPro)}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total comptes perso</div>
+      <div class="stat-value ${totalPerso>=0?'pos':'neg'}">${fmt(totalPerso)}</div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div>
+      <div class="sec-head"><h2>💼 Comptes professionnels</h2><button class="btn btn-primary btn-sm" onclick="openCompteModal('pro')">+ Ajouter</button></div>
+      ${renderAccList(pro,'professionnel','var(--primary)')}
+    </div>
+    <div>
+      <div class="sec-head"><h2>🏠 Comptes personnels</h2><button class="btn btn-primary btn-sm" onclick="openCompteModal('perso')">+ Ajouter</button></div>
+      ${renderAccList(perso,'personnel','var(--success)')}
+    </div>
+  </div>`;
+}
+
+async function openCompteModal(type='pro', existingId=null) {
+  const existing = existingId ? (await load('comptes')).find(c=>c.id===existingId) : null;
+  const c = existing || { type };
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>${existing?'Modifier':'Ajouter'} un compte</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveCompte(event,'${existingId||''}')">
+      <div class="fg"><label>Nom du compte *</label><input type="text" name="name" value="${esc(c.name||'')}" required placeholder="Ex: Compte BNP Pro"></div>
+      <div class="form-row">
+        <div class="fg"><label>Type</label><select name="type"><option value="pro"${c.type==='pro'?' selected':''}>Professionnel</option><option value="perso"${c.type==='perso'?' selected':''}>Personnel</option></select></div>
+        <div class="fg"><label>Solde initial (€)</label><input type="number" name="initialBalance" step="0.01" value="${c.initialBalance||0}"></div>
+      </div>
+      <div class="fg"><label>Note</label><textarea name="note" rows="2">${esc(c.note||'')}</textarea></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function saveCompte(e, existingId) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const item = { id:existingId||uid(), name:fd.get('name'), type:fd.get('type'), initialBalance:parseFloat(fd.get('initialBalance'))||0, note:fd.get('note'), active:true };
+  await save('comptes', item);
+  closeModal(); toast('Compte enregistré !','success'); render();
+}
+
+async function editCompte(id) { await openCompteModal(null, id); }
+async function deleteCompte(id) {
+  if(!confirm('Supprimer ce compte ?')) return;
+  await remove('comptes', id); toast('Compte supprimé.','danger'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DETTES
+// ═══════════════════════════════════════════════════════════
+async function renderDettes() {
+  const dettes = await load('dettes');
+  const actives = dettes.filter(d=>d.status!=='soldée');
+  const soldees = dettes.filter(d=>d.status==='soldée');
+  const totalRest = sum(actives,'remainingBalance');
+  const totalMens = sum(actives,'monthlyPayment');
+
+  return `
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="card-title">Total restant dû</div><div class="stat-value neg">${fmt(totalRest)}</div></div>
+    <div class="card"><div class="card-title">Mensualités totales</div><div class="stat-value neg">${fmt(totalMens)}/mois</div></div>
+    <div class="card"><div class="card-title">Dettes actives</div><div class="stat-value">${actives.length}</div></div>
+  </div>
+  <div class="sec-head">
+    <h2>Dettes & crédits</h2>
+    <button class="btn btn-primary btn-sm" onclick="openDetteModal()">+ Ajouter</button>
+  </div>
+  ${dettes.length===0?`<div class="empty card"><div class="eicon">💳</div><p>Aucune dette enregistrée</p></div>`:''}
+  ${actives.map(d=>renderDetteCard(d)).join('')}
+  ${soldees.length>0?`<details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600;color:var(--text-muted);padding:8px 0">Dettes soldées (${soldees.length})</summary>${soldees.map(d=>renderDetteCard(d)).join('')}</details>`:''}`;
+}
+
+function renderDetteCard(d) {
+  const pct = d.initialAmount>0 ? Math.round(((d.initialAmount-(d.remainingBalance||d.initialAmount))/d.initialAmount)*100) : 0;
+  const isExpiringSoon = d.dueDate && new Date(d.dueDate) < new Date(Date.now()+60*24*3600*1000);
+  const isExpired = d.dueDate && new Date(d.dueDate) < new Date();
+  return `<div class="debt-card" style="margin-bottom:10px;border-left:4px solid ${d.status==='soldée'?'var(--success)':isExpired?'var(--danger)':isExpiringSoon?'var(--warning)':'var(--border)'}">
+    <div class="debt-head">
+      <div>
+        <div class="debt-title">${esc(d.creditor)}</div>
+        <div class="debt-meta">
+          Montant initial: ${fmt(d.initialAmount)} · Restant: <strong style="color:var(--danger)">${fmt(d.remainingBalance)}</strong>
+          ${d.monthlyPayment?` · Mensualité: ${fmt(d.monthlyPayment)}`:''}
+          ${d.dueDate?` · Échéance: ${fmtD(d.dueDate)}`:''}
+        </div>
+        ${isExpired?`<span class="badge bg-red">⚠️ Délai dépassé</span>`:isExpiringSoon?`<span class="badge bg-yellow">⏰ Expire bientôt</span>`:''}
+        ${d.status==='soldée'?`<span class="badge bg-green">✓ Soldée</span>`:''}
+        ${d.note?`<div style="font-size:.76rem;color:var(--text-muted);margin-top:3px">${esc(d.note)}</div>`:''}
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-outline btn-sm" onclick="editDette('${d.id}')">✏️</button>
+        <button class="btn btn-success btn-sm" onclick="payDette('${d.id}')">💰</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDette('${d.id}')">🗑</button>
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;color:var(--text-muted);margin-bottom:3px"><span>Remboursé</span><span>${pct}%</span></div>
+      <div class="prog-wrap"><div class="prog-bar bar-g" style="width:${pct}%"></div></div>
+    </div>
+  </div>`;
+}
+
+async function openDetteModal(existingId=null) {
+  const existing = existingId ? (await load('dettes')).find(d=>d.id===existingId) : null;
+  const d = existing || {};
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>${existing?'Modifier':'Ajouter'} une dette</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveDette(event,'${existingId||''}')">
+      <div class="fg"><label>Créancier *</label><input type="text" name="creditor" value="${esc(d.creditor||'')}" required placeholder="Ex: Crédit Agricole, BNP…"></div>
+      <div class="form-row">
+        <div class="fg"><label>Montant initial (€) *</label><input type="number" name="initialAmount" step="0.01" min="0" value="${d.initialAmount||''}" required></div>
+        <div class="fg"><label>Solde restant (€) *</label><input type="number" name="remainingBalance" step="0.01" min="0" value="${d.remainingBalance||''}" required></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Mensualité (€)</label><input type="number" name="monthlyPayment" step="0.01" min="0" value="${d.monthlyPayment||''}"></div>
+        <div class="fg"><label>Fréquence</label><select name="frequency"><option value="mensuel"${d.frequency==='mensuel'?' selected':''}>Mensuel</option><option value="trimestriel"${d.frequency==='trimestriel'?' selected':''}>Trimestriel</option><option value="annuel"${d.frequency==='annuel'?' selected':''}>Annuel</option><option value="unique"${d.frequency==='unique'?' selected':''}>Unique</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Date de début</label><input type="date" name="startDate" value="${d.startDate||''}"></div>
+        <div class="fg"><label>Date d'échéance</label><input type="date" name="dueDate" value="${d.dueDate||''}"></div>
+      </div>
+      <div class="fg"><label>Statut</label><select name="status"><option value="active"${d.status==='active'||!d.status?' selected':''}>Active</option><option value="soldée"${d.status==='soldée'?' selected':''}>Soldée</option><option value="suspendue"${d.status==='suspendue'?' selected':''}>Suspendue</option></select></div>
+      <div class="fg"><label>Note</label><textarea name="note" rows="2">${esc(d.note||'')}</textarea></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function saveDette(e, existingId) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const item = {
+    id:existingId||uid(), creditor:fd.get('creditor'),
+    initialAmount:parseFloat(fd.get('initialAmount'))||0,
+    remainingBalance:parseFloat(fd.get('remainingBalance'))||0,
+    monthlyPayment:parseFloat(fd.get('monthlyPayment'))||0,
+    frequency:fd.get('frequency'), startDate:fd.get('startDate'),
+    dueDate:fd.get('dueDate'), status:fd.get('status'), note:fd.get('note')
+  };
+  await save('dettes', item);
+  closeModal(); toast('Dette enregistrée !','success'); render();
+}
+
+async function editDette(id) { await openDetteModal(id); }
+async function deleteDette(id) {
+  if(!confirm('Supprimer cette dette ?')) return;
+  await remove('dettes', id); toast('Supprimée.','danger'); render();
+}
+async function payDette(id) {
+  const dettes = await load('dettes');
+  const d = dettes.find(d=>d.id===id);
+  if(!d) return;
+  const amount = prompt(`Saisir le montant du versement pour "${d.creditor}" (solde restant: ${fmt(d.remainingBalance)}) :`, d.monthlyPayment||'');
+  if(amount===null) return;
+  const v = parseFloat(amount);
+  if(isNaN(v)||v<=0) { toast('Montant invalide !','danger'); return; }
+  d.remainingBalance = Math.max(0, d.remainingBalance - v);
+  if(d.remainingBalance<=0) d.status='soldée';
+  await save('dettes', d);
+  invalidate('dettes');
+  toast(`Versement de ${fmt(v)} enregistré !`,'success'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BUDGET PRÉVISIONNEL
+// ═══════════════════════════════════════════════════════════
+// ── Helpers budget ────────────────────────────────────────────────
+function budgetTotaux(b) {
+  const lignes = b.lignes || [];
+  if (!lignes.length) {
+    const fixed = b.fixedCharges||0, variable = b.variableCharges||0, excep = b.exceptionalCharges||0;
+    return { fixed, variable, excep, total: fixed+variable+excep, lignes: [] };
+  }
+  const fixed    = lignes.filter(l=>l.type==='fixe').reduce((s,l)=>s+(l.montant||0),0);
+  const variable = lignes.filter(l=>l.type==='variable').reduce((s,l)=>s+(l.montant||0),0);
+  const excep    = lignes.filter(l=>l.type==='exceptionnel').reduce((s,l)=>s+(l.montant||0),0);
+  return { fixed, variable, excep, total: fixed+variable+excep, lignes };
+}
+
+// Calcule le réel dépensé pour une ligne de budget ce mois
+function _realPourLigne(l, vtcDepMois, persoDepMois) {
+  if (!l.categoryName) return null; // non lié, pas de suivi automatique
+  const store = l.storeKey === 'perso-dep' ? persoDepMois : vtcDepMois;
+  return sum(store.filter(d => {
+    const catOk = (d.category||'').toLowerCase() === l.categoryName.toLowerCase();
+    if (!catOk) return false;
+    if (l.subCategoryName) return (d.subCategory||'').toLowerCase() === l.subCategoryName.toLowerCase();
+    return true;
+  }));
+}
+
+let _budgetLignes = [];
+let _budgetCategories = []; // cache pour la modale
+
+// Génère les options du select catégorie dans la modale budget
+// Valeur encodée : "catName|subName|storeKey" ou "catName||storeKey"
+function _budgetCatOptions(selCatName, selSubName, selStore) {
+  const parents = _budgetCategories.filter(c=>!c.parentId);
+  const vtcPar  = parents.filter(c=>c.type==='vtc-depenses');
+  const persPar = parents.filter(c=>c.type==='perso-dep');
+  let opts = `<option value="">— Libre (sans lien catégorie) —</option>`;
+  function addGroup(label, list) {
+    if (!list.length) return;
+    opts += `<optgroup label="${label}">`;
+    for (const p of list) {
+      const children = _budgetCategories.filter(c=>c.parentId===p.id);
+      const sk = p.type;
+      if (!children.length) {
+        const sel = selCatName===p.name && !selSubName && selStore===sk ? 'selected' : '';
+        opts += `<option value="${p.name}||${sk}" ${sel}>${p.name}</option>`;
+      } else {
+        // Parent seul (toutes sous-cats confondues)
+        const sel = selCatName===p.name && !selSubName && selStore===sk ? 'selected' : '';
+        opts += `<option value="${p.name}||${sk}" ${sel}>${p.name} — toutes sous-cat.</option>`;
+        for (const c of children) {
+          const sel2 = selCatName===p.name && selSubName===c.name && selStore===sk ? 'selected' : '';
+          opts += `<option value="${p.name}|${c.name}|${sk}" ${sel2}>&nbsp;&nbsp;↳ ${c.name}</option>`;
+        }
+      }
+    }
+    opts += `</optgroup>`;
+  }
+  addGroup('🚗 Dépenses VTC', vtcPar);
+  addGroup('🏠 Dépenses perso', persPar);
+  return opts;
+}
+
+function _onBudgetCatChange(i, val) {
+  if (!val) {
+    _budgetLignes[i].categoryName    = null;
+    _budgetLignes[i].subCategoryName = null;
+    _budgetLignes[i].storeKey        = null;
+    return;
+  }
+  const parts = val.split('|');
+  const catName = parts[0], subName = parts[1]||null, sk = parts[2];
+  _budgetLignes[i].categoryName    = catName;
+  _budgetLignes[i].subCategoryName = subName || null;
+  _budgetLignes[i].storeKey        = sk;
+  // Auto-remplir le libellé si vide
+  const inp = document.getElementById(`bud-lbl-${i}`);
+  if (inp && !inp.value) {
+    const newLabel = subName ? `${catName} — ${subName}` : catName;
+    _budgetLignes[i].label = newLabel;
+    inp.value = newLabel;
+  }
+}
+
+function _renderBudgetRows() {
+  const tbody = document.getElementById('bud-tbody');
+  if (!tbody) return;
+  const inp = s => `style="border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:.83rem;background:var(--card);${s}"`;
+  if (_budgetLignes.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:14px;font-size:.85rem">Aucun poste — cliquez sur "＋ Ajouter un poste"</td></tr>`;
+  } else {
+    const rowColors = ['#ffffff','#f8f9fb'];
+    const typeColors = {
+      fixe:         { bg:'rgba(37,99,235,.06)',  border:'rgba(37,99,235,.18)',  dot:'#2563eb' },
+      variable:     { bg:'rgba(245,158,11,.06)', border:'rgba(245,158,11,.18)', dot:'#d97706' },
+      exceptionnel: { bg:'rgba(239,68,68,.06)',  border:'rgba(239,68,68,.18)',  dot:'#dc2626' },
+    };
+    tbody.innerHTML = _budgetLignes.map((l,i) => {
+      const rowBg = rowColors[i%2];
+      const tc = typeColors[l.type] || typeColors.fixe;
+      return `
+      <tr style="background:${rowBg}">
+        <td style="min-width:150px;padding:8px 6px">
+          <select onchange="_onBudgetCatChange(${i},this.value)" ${inp('width:100%;margin-bottom:5px')}>
+            ${_budgetCatOptions(l.categoryName, l.subCategoryName, l.storeKey)}
+          </select>
+          <input id="bud-lbl-${i}" type="text" value="${(l.label||'').replace(/"/g,'&quot;')}"
+            oninput="_budgetLignes[${i}].label=this.value" placeholder="Libellé libre"
+            ${inp('width:100%')}>
+        </td>
+        <td style="padding:8px 6px;vertical-align:top">
+          <select onchange="_budgetLignes[${i}].type=this.value;_renderBudgetRows()"
+            style="border:1px solid ${tc.border};border-radius:5px;padding:4px 6px;font-size:.82rem;background:${tc.bg};color:${tc.dot};font-weight:600;cursor:pointer">
+            <option value="fixe"        ${l.type==='fixe'?'selected':''}>⚓ Fixe</option>
+            <option value="variable"    ${l.type==='variable'?'selected':''}>📊 Variable</option>
+            <option value="exceptionnel"${l.type==='exceptionnel'?'selected':''}>⚡ Excep.</option>
+          </select>
+        </td>
+        <td style="padding:8px 6px;vertical-align:top">
+          <input type="number" value="${l.montant||''}" min="0" step="0.01" placeholder="0.00"
+            oninput="_budgetLignes[${i}].montant=parseFloat(this.value)||0;_updateBudgetTotal()"
+            ${inp('width:85px;text-align:right')}>
+        </td>
+        <td style="text-align:center;padding:8px 4px;vertical-align:top">
+          <button type="button" onclick="_budgetLignes.splice(${i},1);_renderBudgetRows()"
+            style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:5px;color:var(--danger);cursor:pointer;font-size:.85rem;padding:3px 7px">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  _updateBudgetTotal();
+}
+
+function _updateBudgetTotal() {
+  const el = document.getElementById('bud-total');
+  if (!el) return;
+  const fixed    = _budgetLignes.filter(l=>l.type==='fixe').reduce((s,l)=>s+(l.montant||0),0);
+  const variable = _budgetLignes.filter(l=>l.type==='variable').reduce((s,l)=>s+(l.montant||0),0);
+  const excep    = _budgetLignes.filter(l=>l.type==='exceptionnel').reduce((s,l)=>s+(l.montant||0),0);
+  const total    = fixed + variable + excep;
+  el.innerHTML = `<span>⚓ Fixes <strong>${fmt(fixed)}</strong></span>
+    &nbsp;·&nbsp;<span>📊 Variables <strong>${fmt(variable)}</strong></span>
+    &nbsp;·&nbsp;<span>⚡ Excep. <strong>${fmt(excep)}</strong></span>
+    &nbsp;·&nbsp;<strong style="font-size:1rem;color:var(--primary)">Total ${fmt(total)}</strong>`;
+}
+
+function _addBudgetLigne() {
+  _budgetLignes.push({ id: uid(), label: '', type: 'fixe', montant: 0, categoryName: null, subCategoryName: null, storeKey: null });
+  _renderBudgetRows();
+  // focus sur le dernier libellé
+  setTimeout(()=>{ const els=document.querySelectorAll('[id^="bud-lbl-"]'); if(els.length) els[els.length-1].focus(); }, 50);
+}
+
+async function renderBudget() {
+  const [vtcRec, vtcDep, persoDep, budgets, cats] = await Promise.all([
+    load('vtc-recettes'), load('vtc-depenses'), load('perso-dep'), load('budgets'), load('categories')
+  ]);
+  const budget = budgets.find(b=>b.month===selectedMonth) || {};
+  const vtcDepMois  = byMonth(vtcDep,  selectedMonth);
+  const persoDepMois= byMonth(persoDep, selectedMonth);
+  const mRec  = sum(byMonth(vtcRec, selectedMonth));
+  const mDep  = sum(vtcDepMois) + sum(persoDepMois); // total toutes dépenses
+
+  const prevRec = budget.estimatedRevenue||0;
+  const { fixed, variable, excep, total: prevDep, lignes } = budgetTotaux(budget);
+
+  function pctBar(real, prev, inverse=false) {
+    if(!prev) return `<div class="stat-sub" style="font-size:.78rem;color:var(--text-muted)">Pas de prévision saisie</div>`;
+    const pct = Math.round((real/prev)*100);
+    const cls = inverse ? (pct>=100?'bar-r':pct>=80?'bar-y':'bar-g') : (pct>=100?'bar-g':pct>=70?'bar-y':'bar-r');
+    return `<div class="prog-wrap" style="margin-top:6px"><div class="prog-bar ${cls}" style="width:${Math.min(pct,100)}%"></div></div><div class="stat-sub">${pct}% réalisé</div>`;
+  }
+
+  // ── Statut par ligne ──────────────────────────────────────────
+  function statutBadge(reel, prevu, linked) {
+    if (!linked)  return `<span style="font-size:.73rem;padding:2px 7px;border-radius:10px;background:#f1f5f9;color:#64748b">ℹ️ Non suivi</span>`;
+    if (reel === null) return `<span style="font-size:.73rem;padding:2px 7px;border-radius:10px;background:#f1f5f9;color:#64748b">ℹ️ Non suivi</span>`;
+    if (reel > prevu * 1.05) return `<span style="font-size:.73rem;padding:2px 7px;border-radius:10px;background:rgba(239,68,68,.12);color:var(--danger)">🔴 Dépassé</span>`;
+    if (reel > prevu * 0.9)  return `<span style="font-size:.73rem;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.12);color:var(--warning)">⚠️ Proche</span>`;
+    if (reel >= 0)            return `<span style="font-size:.73rem;padding:2px 7px;border-radius:10px;background:rgba(16,185,129,.12);color:var(--success)">✅ Respecté</span>`;
+    return '';
+  }
+
+  function typeBadge(t) {
+    const map = {fixe:['⚓ Fixe','rgba(37,99,235,.1)','var(--primary)'],variable:['📊 Variable','rgba(245,158,11,.1)','var(--warning)'],exceptionnel:['⚡ Excep.','rgba(239,68,68,.1)','var(--danger)']};
+    const [l,bg,col] = map[t]||['—','',''];
+    return `<span style="font-size:.73rem;padding:2px 7px;border-radius:10px;background:${bg};color:${col}">${l}</span>`;
+  }
+
+  const hist = [...budgets].sort((a,b)=>b.month.localeCompare(a.month)).slice(0,12);
+
+  // ── Tableau de suivi poste par poste ─────────────────────────
+  const suiviTable = lignes.length ? (() => {
+    const rows = lignes.map(l => {
+      const reel = _realPourLigne(l, vtcDepMois, persoDepMois);
+      const ecart = reel !== null ? reel - l.montant : null;
+      const linked = !!l.categoryName;
+      const storeLabel = l.storeKey==='perso-dep' ? '🏠 Perso' : l.storeKey==='vtc-depenses' ? '🚗 VTC' : '';
+      const catLabel = l.categoryName
+        ? `<span style="font-size:.72rem;color:var(--primary)">${storeLabel} ${l.categoryName}${l.subCategoryName?` › ${l.subCategoryName}`:''}</span>`
+        : `<span style="font-size:.72rem;color:var(--text-muted)">— libre —</span>`;
+      return `<tr>
+        <td>
+          <div style="font-weight:600;font-size:.88rem">${l.label||'—'}</div>
+          <div style="margin-top:2px">${catLabel}</div>
+        </td>
+        <td>${typeBadge(l.type)}</td>
+        <td class="neg" style="text-align:right;font-weight:600">${fmt(l.montant||0)}</td>
+        <td style="text-align:right;color:${reel!==null?'var(--text)':'var(--text-muted)'}">${reel!==null?fmt(reel):'—'}</td>
+        <td style="text-align:right;font-weight:700;color:${ecart===null?'var(--text-muted)':ecart>0?'var(--danger)':ecart<0?'var(--success)':'var(--text)'}">${ecart===null?'—':ecart>0?`+${fmt(ecart)}`:fmt(ecart)}</td>
+        <td>${statutBadge(reel, l.montant, linked)}</td>
+      </tr>`;
+    });
+    // Totaux liés vs non liés
+    const totalPrev  = lignes.reduce((s,l)=>s+(l.montant||0),0);
+    const totalReel  = lignes.reduce((s,l)=>{ const r=_realPourLigne(l,vtcDepMois,persoDepMois); return s+(r??0); },0);
+    const totalEcart = totalReel - totalPrev;
+    return `<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin:0">📊 Suivi poste par poste — ${monthLabel(selectedMonth)}</div>
+        <button class="btn btn-outline btn-sm" onclick="openBudgetModal()">✏️ Modifier</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Poste</th><th>Type</th>
+          <th style="text-align:right">Prévu</th>
+          <th style="text-align:right">Réel</th>
+          <th style="text-align:right">Écart</th>
+          <th>Statut</th>
+        </tr></thead>
+        <tbody>${rows.join('')}</tbody>
+        <tfoot><tr style="font-weight:700;border-top:2px solid var(--border)">
+          <td colspan="2">Total</td>
+          <td class="neg" style="text-align:right">${fmt(totalPrev)}</td>
+          <td style="text-align:right">${fmt(totalReel)}</td>
+          <td style="text-align:right;color:${totalEcart>0?'var(--danger)':totalEcart<0?'var(--success)':'inherit'}">${totalEcart>0?'+':''}${fmt(totalEcart)}</td>
+          <td></td>
+        </tr></tfoot>
+      </table></div>
+    </div>`;
+  })() : '';
+
+  return `
+  <div class="sec-head">
+    <h2>Budget — ${monthLabel(selectedMonth)}</h2>
+    <button class="btn btn-primary btn-sm" onclick="openBudgetModal()">✏️ Saisir les postes</button>
+  </div>
+
+  ${!lignes.length && !prevDep ? `<div class="empty" style="margin-bottom:14px"><div class="eicon">🎯</div>
+    <p>Aucun budget saisi pour ce mois</p>
+    <p style="font-size:.82rem;color:var(--text-muted)">Cliquez sur "Saisir les postes" pour lier chaque poste à vos catégories de dépenses réelles.</p>
+    <button class="btn btn-primary btn-sm" onclick="openBudgetModal()" style="margin-top:10px">✏️ Saisir les postes</button>
+  </div>` : ''}
+
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">💰 Recettes prévues</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="stat-value pos">${fmt(prevRec)}</div>
+        <div style="text-align:right">
+          <div style="font-size:.82rem;color:var(--text-muted)">Réel: <strong class="pos">${fmt(mRec)}</strong></div>
+          <div style="font-size:.82rem;color:${mRec>=prevRec?'var(--success)':'var(--danger)'};font-weight:600">Écart: ${fmt(mRec-prevRec)}</div>
+        </div>
+      </div>
+      ${pctBar(mRec, prevRec, false)}
+    </div>
+    <div class="card">
+      <div class="card-title">💸 Total charges prévu</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="stat-value neg">${fmt(prevDep)}</div>
+        <div style="text-align:right">
+          <div style="font-size:.82rem;color:var(--text-muted)">Réel: <strong class="neg">${fmt(mDep)}</strong></div>
+          <div style="font-size:.82rem;color:${mDep<=prevDep?'var(--success)':'var(--danger)'};font-weight:600">Écart: ${fmt(mDep-prevDep)}</div>
+        </div>
+      </div>
+      ${pctBar(mDep, prevDep, true)}
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="card-title">⚓ Charges fixes</div><div class="stat-value neg">${fmt(fixed)}</div></div>
+    <div class="card"><div class="card-title">📊 Charges variables</div><div class="stat-value neg">${fmt(variable)}</div></div>
+    <div class="card"><div class="card-title">⚡ Exceptionnelles</div><div class="stat-value neg">${fmt(excep)}</div></div>
+  </div>
+
+  ${suiviTable}
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Synthèse globale</div>
+    <table class="sum-table">
+      <tr><td>Recettes prévues</td><td class="pos" style="text-align:right">${fmt(prevRec)}</td></tr>
+      <tr><td>Recettes réelles (VTC)</td><td class="pos" style="text-align:right">${fmt(mRec)}</td></tr>
+      <tr><td style="color:var(--text-muted)">└ Écart</td><td style="text-align:right;color:${mRec>=prevRec?'var(--success)':'var(--danger)'};font-weight:600">${mRec>=prevRec?'+':''}${fmt(mRec-prevRec)}</td></tr>
+      <tr><td colspan="2" style="padding:3px"></td></tr>
+      <tr><td>Charges prévues (total postes)</td><td class="neg" style="text-align:right">${fmt(prevDep)}</td></tr>
+      <tr><td>Charges réelles (VTC + Perso)</td><td class="neg" style="text-align:right">${fmt(mDep)}</td></tr>
+      <tr><td style="color:var(--text-muted)">└ Écart</td><td style="text-align:right;color:${mDep<=prevDep?'var(--success)':'var(--danger)'};font-weight:600">${mDep<=prevDep?'':'+'}${fmt(mDep-prevDep)}</td></tr>
+      <tr><td colspan="2" style="border-top:2px solid var(--border);padding-top:8px"></td></tr>
+      <tr><td><strong>Résultat net réel (VTC seul)</strong></td><td style="text-align:right;font-size:1rem;color:${(mRec-sum(vtcDepMois))>=0?'var(--success)':'var(--danger)'}"><strong>${fmt(mRec-sum(vtcDepMois))}</strong></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><h2>Historique des budgets</h2></div>
+    ${hist.length===0?`<div class="empty"><div class="eicon">🎯</div><p>Aucun budget défini</p></div>`:
+    `<div class="table-wrap"><table>
+      <tr><th>Mois</th><th>Rec. prévues</th><th>Charges prévues</th><th>Résultat prévu</th><th>Résultat réel VTC</th><th>Écart</th></tr>
+      ${hist.map(b=>{
+        const m=b.month; const {total:pDp}=budgetTotaux(b);
+        const r=sum(byMonth(vtcRec,m)); const c=sum(byMonth(vtcDep,m));
+        const pNet=(b.estimatedRevenue||0)-pDp; const rNet=r-c;
+        return `<tr>
+          <td>${monthLabel(m)}</td>
+          <td class="pos">${fmt(b.estimatedRevenue||0)}</td>
+          <td class="neg">${fmt(pDp)}</td>
+          <td style="color:${pNet>=0?'var(--success)':'var(--danger)'};font-weight:600">${fmt(pNet)}</td>
+          <td style="color:${rNet>=0?'var(--success)':'var(--danger)'};font-weight:600">${fmt(rNet)}</td>
+          <td style="color:${(rNet-pNet)>=0?'var(--success)':'var(--danger)'};font-weight:600">${(rNet-pNet)>=0?'+':''}${fmt(rNet-pNet)}</td>
+        </tr>`;
+      }).join('')}
+    </table></div>`}
+  </div>`;
+}
+
+async function openBudgetModal() {
+  const [budgets, cats] = await Promise.all([load('budgets'), load('categories')]);
+  _budgetCategories = cats; // cache pour _budgetCatOptions
+  const b = budgets.find(x=>x.month===selectedMonth)||{};
+  const isNew = !budgets.find(x=>x.month===selectedMonth);
+
+  // Initialise les lignes en mémoire
+  if (b.lignes && b.lignes.length) {
+    _budgetLignes = b.lignes.map(l=>({...l}));
+  } else if (b.fixedCharges || b.variableCharges || b.exceptionalCharges) {
+    _budgetLignes = [];
+    if (b.fixedCharges)       _budgetLignes.push({id:uid(),label:'Charges fixes',         type:'fixe',         montant:b.fixedCharges,       categoryName:null,subCategoryName:null,storeKey:null});
+    if (b.variableCharges)    _budgetLignes.push({id:uid(),label:'Charges variables',      type:'variable',     montant:b.variableCharges,    categoryName:null,subCategoryName:null,storeKey:null});
+    if (b.exceptionalCharges) _budgetLignes.push({id:uid(),label:'Charges exceptionnelles',type:'exceptionnel', montant:b.exceptionalCharges,  categoryName:null,subCategoryName:null,storeKey:null});
+  } else {
+    _budgetLignes = [];
+  }
+
+  // Report automatique des postes fixes depuis le mois précédent
+  let prevInfo = '';
+  if (isNew) {
+    const [yr, mo] = selectedMonth.split('-').map(Number);
+    const prevDate  = new Date(yr, mo-2, 1);
+    const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
+    const prev = budgets.find(x=>x.month===prevMonth);
+    if (prev) {
+      const {lignes: prevLignes} = budgetTotaux(prev);
+      const fixesAPporter = prevLignes.filter(l=>l.type==='fixe');
+      if (fixesAPporter.length) {
+        _budgetLignes = fixesAPporter.map(l=>({...l, id:uid()}));
+        prevInfo = `<div style="font-size:.75rem;color:var(--primary);background:rgba(37,99,235,.07);border-radius:6px;padding:6px 10px;margin-bottom:10px">
+          ℹ️ <strong>${fixesAPporter.length} poste(s) fixe(s)</strong> reporté(s) depuis ${monthLabel(prevMonth)} avec leur lien catégorie. Ajoutez vos charges variables puis enregistrez.
+        </div>`;
+      }
+    }
+  }
+
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>📋 Budget — ${monthLabel(selectedMonth)}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="max-height:72vh;overflow-y:auto;padding-right:2px">
+      ${prevInfo}
+      <div class="fg" style="margin-bottom:12px">
+        <label>💰 Recettes estimées (CA VTC + autres revenus) (€)</label>
+        <input type="number" id="bud-rev" step="0.01" min="0" value="${b.estimatedRevenue||''}" placeholder="Ex : 3000">
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-weight:600;font-size:.9rem">Postes de dépenses</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="_addBudgetLigne()">＋ Ajouter un poste</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">
+        Pour chaque poste, sélectionnez la catégorie correspondante → l'app calculera automatiquement le réel dépensé.
+      </div>
+
+      <div class="table-wrap" style="margin-bottom:8px">
+        <table>
+          <thead><tr>
+            <th>Catégorie liée → Libellé</th>
+            <th>Type</th>
+            <th style="text-align:right">Prévu (€)</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="bud-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="bud-total" style="background:var(--bg);border-radius:8px;padding:8px 12px;font-size:.82rem;margin-bottom:10px"></div>
+    </div>
+    <div style="display:flex;gap:9px;justify-content:flex-end;padding-top:10px;border-top:1px solid var(--border)">
+      <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+      <button type="button" class="btn btn-primary" onclick="saveBudget()">💾 Enregistrer</button>
+    </div>`;
+
+  openModal();
+  _renderBudgetRows();
+}
+
+async function saveBudget() {
+  const rev = parseFloat(document.getElementById('bud-rev')?.value)||0;
+  const item = {
+    id: (await load('budgets')).find(b=>b.month===selectedMonth)?.id || uid(),
+    month: selectedMonth,
+    estimatedRevenue: rev,
+    lignes: _budgetLignes.map(l=>({...l})),
+  };
+  await save('budgets', item);
+  invalidate('budgets');
+  closeModal(); toast('Budget enregistré !','success'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENTABILITÉ
+// ═══════════════════════════════════════════════════════════
+async function renderRentabilite() {
+  const [vtcRec, vtcDep] = await Promise.all([load('vtc-recettes'), load('vtc-depenses')]);
+
+  // ── Paramètres pilotage (persistés) ──────────────────────────────
+  const cfg = await IDB.kvGet('pilotage-cfg', {
+    objectifNet: 2000,
+    conso: 4.5,
+    prixCarburant: 2.0,
+    kmCDIParJour: 100,
+    joursOuvresCDI: 22,
+    joursOuvresVTC: 22,
+    tauxURSSAF: 0.225,
+  });
+
+  const mRec = byMonth(vtcRec, selectedMonth);
+  const mDep = byMonth(vtcDep, selectedMonth);
+  const ca   = sum(mRec);
+
+  // ── Décomposition charges réelles ────────────────────────────────
+  const carburantTotal = sum(mDep.filter(d => (d.category||'').toLowerCase().includes('carburant')));
+  const chargesHorsCarb = sum(mDep.filter(d => !(d.category||'').toLowerCase().includes('carburant')));
+  const totalChargesVTC = sum(mDep);
+  // URSSAF auto-entrepreneur : proportionnel au CA
+  const urssaf = ca * (cfg.tauxURSSAF || 0.225);
+  const totalCharges = totalChargesVTC + urssaf;
+  const netResult = ca - totalCharges;
+
+  // ── Calcul carburant CDI à déduire ───────────────────────────────
+  // Prius 2016 : conso estimée cfg.conso L/100km
+  const kmCDIMois  = cfg.kmCDIParJour * cfg.joursOuvresCDI;
+  const coutCDIMois = kmCDIMois / 100 * cfg.conso * cfg.prixCarburant;
+  // Carburant VTC pur = total carburant - part CDI
+  const carbPurVTC = Math.max(0, carburantTotal - coutCDIMois);
+
+  // ── Charges fixes vs variables ────────────────────────────────────
+  const CATS_FIXES = ['assurance','charge fixe','téléphone','téléphone / connexion','plateforme'];
+  const chargesFixesVTC = sum(mDep.filter(d => CATS_FIXES.includes((d.category||'').toLowerCase())));
+  const chargesVarVTC   = chargesHorsCarb - chargesFixesVTC + carbPurVTC;
+
+  // ── Coût par km VTC ──────────────────────────────────────────────
+  const kmVTCMois = cfg.joursOuvresVTC * cfg.kmCDIParJour; // estimation (1 journée VTC ≈ km similaire CDI si non saisi)
+  const coutKmVTC = kmVTCMois > 0 ? totalCharges / kmVTCMois : 0;
+
+  // ── Seuil de rentabilité (URSSAF inclus) ─────────────────────────
+  // Point mort = charges fixes / (1 - taux var VTC - taux URSSAF)
+  // L'URSSAF est proportionnel au CA → réduit la marge comme une charge variable
+  const tauxU = cfg.tauxURSSAF || 0.225;
+  const txVar = ca > 0 ? chargesVarVTC / ca : 0.30;
+  const denom = 1 - txVar - tauxU;
+  const breakeven  = denom > 0 ? chargesFixesVTC / denom : chargesFixesVTC / Math.max(1 - tauxU, 0.01);
+
+  // ── CA nécessaire pour objectif net (URSSAF inclus) ──────────────
+  const caObjectif = denom > 0 ? (chargesFixesVTC + cfg.objectifNet) / denom : 0;
+
+  // ── Projection fin de mois ────────────────────────────────────────
+  const today = new Date();
+  const [yr, mo] = selectedMonth.split('-').map(Number);
+  const isCurrentMonth = today.getFullYear() === yr && (today.getMonth()+1) === mo;
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+  const dayOfMonth  = isCurrentMonth ? today.getDate() : daysInMonth;
+  const pct = dayOfMonth / daysInMonth;
+  const caProj = pct > 0 && pct < 1 ? ca / pct : ca;
+  // Charges VTC projetées + URSSAF sur CA projeté
+  const netProj = caProj * (1 - tauxU) - (totalChargesVTC / Math.max(pct, 1));
+
+  // ── Progression vers objectifs ───────────────────────────────────
+  const pctBreakeven   = breakeven > 0 ? Math.min(ca / breakeven * 100, 100) : 100;
+  const pctObjectif    = caObjectif > 0 ? Math.min(ca / caObjectif * 100, 100) : (ca > 0 ? 100 : 0);
+
+  // ── Historique 12 mois ────────────────────────────────────────────
+  const months12 = [];
+  for(let i=11;i>=0;i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const r = sum(byMonth(vtcRec, m));
+    const c = sum(byMonth(vtcDep, m));
+    months12.push({ m, label: d.toLocaleString('fr-FR',{month:'short'}), ca:r, charges:c, net:r-c });
+  }
+  const maxM = Math.max(...months12.map(d=>Math.max(d.ca,d.charges)), 1);
+  const avgRate = months12.filter(m=>m.ca>0).reduce((s,m)=>s+(m.charges/m.ca),0) / (months12.filter(m=>m.ca>0).length||1) * 100;
+
+  // ── Statut global ─────────────────────────────────────────────────
+  const statut = ca >= caObjectif ? {label:'🏆 Objectif atteint',   color:'var(--success)'}
+               : ca >= breakeven  ? {label:'✅ Rentable',            color:'var(--success)'}
+               : ca >= breakeven*0.8?{label:'⚠️ Proche du seuil',   color:'var(--warning)'}
+               :                    {label:'🔴 En dessous du seuil', color:'var(--danger)'};
+
+  function progressBar(pct, color) {
+    return `<div style="background:var(--border);border-radius:20px;height:10px;overflow:hidden;margin:6px 0">
+      <div style="height:100%;width:${pct.toFixed(0)}%;background:${color};border-radius:20px;transition:width .4s"></div>
+    </div><div style="font-size:.73rem;color:var(--text-muted);text-align:right">${pct.toFixed(0)}%</div>`;
+  }
+
+  return `
+  <div class="sec-head" style="margin-bottom:4px">
+    <h2>📈 Rentabilité & Pilotage — ${monthLabel(selectedMonth)}</h2>
+    <button class="btn btn-outline btn-sm" onclick="openPilotageCfg()">⚙️ Paramètres</button>
+  </div>
+
+  <!-- STATUT GLOBAL -->
+  <div style="border-radius:12px;padding:14px 18px;margin-bottom:16px;background:${statut.color}18;border:2px solid ${statut.color};display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="font-size:1.4rem;font-weight:800;color:${statut.color}">${statut.label}</div>
+    <div style="flex:1;min-width:200px">
+      ${isCurrentMonth && pct < 0.99 ? `<div style="font-size:.8rem;color:var(--text-muted)">Jour ${dayOfMonth}/${daysInMonth} — ${Math.round(pct*100)}% du mois écoulé · Projection : <strong style="color:${netProj>=0?'var(--success)':'var(--danger)'}">${fmt(caProj)} CA</strong></div>`:''}
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Résultat net actuel</div>
+      <div style="font-size:1.6rem;font-weight:800;color:${netResult>=0?'var(--success)':'var(--danger)'}">${fmt(netResult)}</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">💰 Chiffre d'affaires</div>
+      <div class="stat-value pos">${fmt(ca)}</div>
+      <div class="stat-sub">${mRec.length} course(s)</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Seuil de rentabilité</div>
+      <div class="stat-value" style="color:${ca>=breakeven?'var(--success)':'var(--danger)'}">${fmt(breakeven)}</div>
+      <div class="stat-sub">${ca>=breakeven?`+${fmt(ca-breakeven)} au-dessus`:`${fmt(ca-breakeven)} manquant`}</div>
+      ${progressBar(pctBreakeven, ca>=breakeven?'var(--success)':'var(--danger)')}
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 CA pour objectif (${fmt(cfg.objectifNet)} net)</div>
+      <div class="stat-value" style="color:${ca>=caObjectif?'var(--success)':'var(--primary)'}">${fmt(caObjectif)}</div>
+      <div class="stat-sub">${ca>=caObjectif?`✅ Objectif atteint !`:`Il manque ${fmt(caObjectif-ca)}`}</div>
+      ${progressBar(pctObjectif, 'var(--primary)')}
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Projection fin de mois</div>
+      <div class="stat-value" style="color:${netProj>=cfg.objectifNet?'var(--success)':netProj>=0?'var(--warning)':'var(--danger)'}">${fmt(caProj)}</div>
+      <div class="stat-sub">Net estimé : <strong style="color:${netProj>=0?'var(--success)':'var(--danger)'}">${fmt(netProj)}</strong></div>
+    </div>
+  </div>
+
+  <!-- DÉCOMPOSITION CHARGES + CARBURANT CDI -->
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">⛽ Analyse carburant (Prius hybride)</div>
+      <table class="sum-table">
+        <tr><td>Carburant total saisi</td><td class="neg" style="text-align:right">${fmt(carburantTotal)}</td></tr>
+        <tr style="color:var(--text-muted);font-size:.85rem">
+          <td>dont CDI (${cfg.kmCDIParJour} km × ${cfg.joursOuvresCDI} j × ${cfg.conso}L/100 × ${cfg.prixCarburant}€)</td>
+          <td style="text-align:right">− ${fmt(coutCDIMois)}</td>
+        </tr>
+        <tr><td><strong>Carburant VTC pur</strong></td><td class="neg" style="text-align:right"><strong>${fmt(carbPurVTC)}</strong></td></tr>
+        <tr><td colspan="2" style="padding:4px 0;border-top:1px solid var(--border)"></td></tr>
+        <tr style="font-size:.82rem;color:var(--text-muted)"><td>Prix carburant</td><td style="text-align:right">${cfg.prixCarburant.toFixed(2)} €/L</td></tr>
+        <tr style="font-size:.82rem;color:var(--text-muted)"><td>Conso estimée Prius</td><td style="text-align:right">${cfg.conso} L/100 km</td></tr>
+        <tr style="font-size:.82rem;color:var(--text-muted)"><td>Km CDI/mois estimés</td><td style="text-align:right">${kmCDIMois.toFixed(0)} km</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Décomposition des charges VTC</div>
+      <table class="sum-table">
+        <tr><td>Charges fixes (assurance, plateforme…)</td><td class="neg" style="text-align:right">${fmt(chargesFixesVTC)}</td></tr>
+        <tr><td>Carburant VTC pur</td><td class="neg" style="text-align:right">${fmt(carbPurVTC)}</td></tr>
+        <tr><td>Autres charges variables</td><td class="neg" style="text-align:right">${fmt(Math.max(0, chargesHorsCarb - chargesFixesVTC))}</td></tr>
+        <tr><td colspan="2" style="padding:4px 0;border-top:1px solid var(--border)"></td></tr>
+        <tr><td><strong>Total charges VTC</strong></td><td class="neg" style="text-align:right"><strong>${fmt(totalChargesVTC)}</strong></td></tr>
+        <tr style="background:rgba(255,160,0,.08)">
+          <td><strong>Cotisations URSSAF</strong> <span style="font-size:.75rem;color:var(--text-muted)">${(tauxU*100).toFixed(1)}% du CA</span></td>
+          <td class="neg" style="text-align:right;font-weight:700">${fmt(urssaf)}</td>
+        </tr>
+        <tr><td colspan="2" style="padding:3px 0;border-top:2px solid var(--border)"></td></tr>
+        <tr><td><strong>Total charges + URSSAF</strong></td><td class="neg" style="text-align:right;font-weight:700">${fmt(totalCharges)}</td></tr>
+        ${ca>0?`<tr><td>Taux global (charges + URSSAF / CA)</td><td style="text-align:right;font-weight:700;color:${totalCharges/ca>0.9?'var(--danger)':totalCharges/ca>0.75?'var(--warning)':'var(--success)'}">${(totalCharges/ca*100).toFixed(1)}%</td></tr>`:''}
+        <tr><td colspan="2" style="padding:3px 0"></td></tr>
+        <tr style="background:rgba(16,185,129,.07)"><td><strong>Résultat net</strong></td><td style="text-align:right;font-size:1.1rem;font-weight:800;color:${netResult>=0?'var(--success)':'var(--danger)'}"><strong>${fmt(netResult)}</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- JAUGES OBJECTIFS -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title" style="margin-bottom:12px">🧭 Où en êtes-vous ce mois ?</div>
+    <div style="display:grid;gap:14px">
+
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:3px">
+          <span>💰 CA réalisé <strong>${fmt(ca)}</strong></span>
+          <span style="color:var(--text-muted)">Seuil rentabilité : ${fmt(breakeven)}</span>
+        </div>
+        <div style="background:var(--border);border-radius:20px;height:14px;overflow:hidden;position:relative">
+          <div style="height:100%;width:${Math.min(ca/Math.max(caObjectif,1)*100,100).toFixed(1)}%;background:linear-gradient(90deg,var(--danger),var(--warning),var(--success));border-radius:20px;transition:width .4s"></div>
+          ${breakeven>0&&caObjectif>0?`<div style="position:absolute;top:0;bottom:0;left:${(breakeven/caObjectif*100).toFixed(1)}%;width:2px;background:#fff;opacity:.8" title="Seuil rentabilité"></div>`:''}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);margin-top:3px">
+          <span>0 €</span>
+          ${breakeven>0?`<span>↑ Seuil ${fmt(breakeven)}</span>`:''}
+          <span>Objectif ${fmt(caObjectif)}</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">
+        <div style="background:var(--bg);border-radius:8px;padding:10px">
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:4px">Taux de charge</div>
+          <div style="font-size:1.2rem;font-weight:800;color:${ca>0&&totalCharges/ca<0.6?'var(--success)':ca>0&&totalCharges/ca<0.8?'var(--warning)':'var(--danger)'}">${ca>0?(totalCharges/ca*100).toFixed(0)+'%':'—'}</div>
+          <div style="font-size:.7rem;color:var(--text-muted)">cible &lt; 60%</div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px">
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:4px">Marge nette</div>
+          <div style="font-size:1.2rem;font-weight:800;color:${netResult>=0?'var(--success)':'var(--danger)'}">${ca>0?((1-totalCharges/ca)*100).toFixed(0)+'%':'—'}</div>
+          <div style="font-size:.7rem;color:var(--text-muted)">sur le CA</div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:10px">
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:4px">Taux carb. moyen</div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--primary)">${avgRate.toFixed(0)}%</div>
+          <div style="font-size:.7rem;color:var(--text-muted)">12 mois</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE 12 MOIS -->
+  <div class="card">
+    <div class="card-title">Évolution 12 mois — CA vs Charges vs Seuil rentabilité</div>
+    <div class="chart-bars">
+      ${months12.map(d=>`<div class="cbar-wrap">
+        <div style="display:flex;gap:1px;align-items:flex-end;flex:1;width:100%">
+          <div class="cbar bar-b" style="height:${Math.round((d.ca/maxM)*88)}%;flex:1" title="CA: ${fmt(d.ca)}"></div>
+          <div class="cbar" style="height:${Math.round((d.charges/maxM)*88)}%;flex:1;background:var(--danger)" title="Charges: ${fmt(d.charges)}"></div>
+        </div>
+        <div class="clabel">${d.label}</div>
+      </div>`).join('')}
+    </div>
+    <div class="table-wrap" style="margin-top:12px">
+      <table>
+        <tr><th>Mois</th><th>CA</th><th>Charges</th><th>Résultat</th><th>Taux</th><th>Statut</th></tr>
+        ${months12.filter(m=>m.ca>0||m.charges>0).map(m=>{
+          const be = m.charges > 0 ? m.charges : breakeven;
+          const ok = m.ca >= be;
+          return `<tr>
+            <td>${monthLabel(m.m)}</td>
+            <td class="pos">${fmt(m.ca)}</td>
+            <td class="neg">${fmt(m.charges)}</td>
+            <td style="font-weight:600;color:${m.net>=0?'var(--success)':'var(--danger)'}">${fmt(m.net)}</td>
+            <td>${m.ca>0?Math.round(m.charges/m.ca*100)+'%':'—'}</td>
+            <td><span class="badge ${ok?'bg-green':'bg-red'}">${ok?'✅ Rentable':'🔴 Déficit'}</span></td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>
+  </div>`;
+}
+
+async function openPilotageCfg() {
+  const cfg = await IDB.kvGet('pilotage-cfg', {
+    objectifNet:2000, conso:4.5, prixCarburant:2.0,
+    kmCDIParJour:100, joursOuvresCDI:22, joursOuvresVTC:22, tauxURSSAF:0.225
+  });
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>⚙️ Paramètres de pilotage</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="savePilotageCfg(event)">
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px">Ces paramètres permettent de calculer votre seuil de rentabilité et de séparer le carburant CDI du carburant VTC.</p>
+      <div class="form-row">
+        <div class="fg"><label>Objectif revenu net mensuel (€)</label><input type="number" name="objectifNet" value="${cfg.objectifNet}" min="0" step="50" required></div>
+        <div class="fg"><label>Taux URSSAF auto-entrepreneur (%)</label><input type="number" name="tauxURSSAF" value="${((cfg.tauxURSSAF||0.225)*100).toFixed(1)}" min="0" max="50" step="0.1" required>
+          <div style="font-size:.73rem;color:var(--text-muted);margin-top:3px">VTC auto-entrepreneur = 22,5% par défaut</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Prix carburant actuel (€/L)</label><input type="number" name="prixCarburant" value="${cfg.prixCarburant}" min="0.5" step="0.01" required></div>
+        <div class="fg"><label>Consommation Prius (L/100 km)</label><input type="number" name="conso" value="${cfg.conso}" min="1" step="0.1" required></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Km CDI par jour travaillé</label><input type="number" name="kmCDIParJour" value="${cfg.kmCDIParJour}" min="0" step="1" required></div>
+        <div class="fg"><label>Jours ouvrés CDI / mois</label><input type="number" name="joursOuvresCDI" value="${cfg.joursOuvresCDI}" min="0" max="31" step="1" required></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Jours de travail VTC / mois</label><input type="number" name="joursOuvresVTC" value="${cfg.joursOuvresVTC}" min="0" max="31" step="1" required></div>
+        <div class="fg"></div>
+      </div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function savePilotageCfg(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const cfg = {
+    objectifNet:    parseFloat(fd.get('objectifNet')),
+    tauxURSSAF:     parseFloat(fd.get('tauxURSSAF')) / 100,
+    prixCarburant:  parseFloat(fd.get('prixCarburant')),
+    conso:          parseFloat(fd.get('conso')),
+    kmCDIParJour:   parseFloat(fd.get('kmCDIParJour')),
+    joursOuvresCDI: parseFloat(fd.get('joursOuvresCDI')),
+    joursOuvresVTC: parseFloat(fd.get('joursOuvresVTC')),
+  };
+  await IDB.kvSet('pilotage-cfg', cfg);
+  closeModal(); toast('Paramètres sauvegardés !','success'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BILAN ANNUEL
+// ═══════════════════════════════════════════════════════════
+async function renderBilan() {
+  const year = selectedMonth.split('-')[0];
+  const [vtcRec, vtcDep] = await Promise.all([load('vtc-recettes'), load('vtc-depenses')]);
+  const months = [];
+  for(let m=1;m<=12;m++) {
+    const k=`${year}-${String(m).padStart(2,'0')}`;
+    const r=sum(byMonth(vtcRec,k)); const c=sum(byMonth(vtcDep,k));
+    months.push({k, label:new Date(k+'-01').toLocaleString('fr-FR',{month:'long'}), rec:r, dep:c, net:r-c});
+  }
+  const totR=months.reduce((s,m)=>s+m.rec,0);
+  const totD=months.reduce((s,m)=>s+m.dep,0);
+  const totN=totR-totD;
+  const allDep=vtcDep.filter(i=>i.date?.startsWith(year));
+  const allRec=vtcRec.filter(i=>i.date?.startsWith(year));
+
+  return `
+  <div class="sec-head">
+    <h2>Bilan VTC — Année ${year}</h2>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Imprimer</button>
+  </div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="card-title">CA annuel</div><div class="stat-value pos">${fmt(totR)}</div></div>
+    <div class="card"><div class="card-title">Charges annuelles</div><div class="stat-value neg">${fmt(totD)}</div></div>
+    <div class="card"><div class="card-title">Résultat net</div><div class="stat-value" style="color:${totN>=0?'var(--success)':'var(--danger)'}">${fmt(totN)}</div><div class="stat-sub">Taux de charge: ${totR>0?Math.round(totD/totR*100)+'%':'—'}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-head"><h2>Récapitulatif mensuel ${year}</h2></div>
+    <div class="table-wrap"><table>
+      <tr><th>Mois</th><th>Recettes</th><th>Charges</th><th>Résultat</th><th>Taux</th></tr>
+      ${months.map(m=>`<tr>
+        <td>${m.label}</td>
+        <td class="pos">${fmt(m.rec)}</td>
+        <td class="neg">${fmt(m.dep)}</td>
+        <td style="font-weight:700;color:${m.net>=0?'var(--success)':'var(--danger)'}">${fmt(m.net)}</td>
+        <td>${m.rec>0?Math.round(m.dep/m.rec*100)+'%':'—'}</td>
+      </tr>`).join('')}
+      <tr style="font-weight:700;background:var(--bg)">
+        <td>TOTAL</td>
+        <td class="pos">${fmt(totR)}</td>
+        <td class="neg">${fmt(totD)}</td>
+        <td style="color:${totN>=0?'var(--success)':'var(--danger)'}">${fmt(totN)}</td>
+        <td>${totR>0?Math.round(totD/totR*100)+'%':'—'}</td>
+      </tr>
+    </table></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-title">Recettes par plateforme</div>${catBreakdown(allRec)}</div>
+    <div class="card"><div class="card-title">Charges par catégorie</div>${catBreakdown(allDep)}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DOCUMENTS
+// ═══════════════════════════════════════════════════════════
+async function renderDocuments() {
+  const docs = await load('documents');
+  return `
+  <div class="sec-head"><h2>Documents administratifs</h2><button class="btn btn-primary btn-sm" onclick="openDocModal()">+ Ajouter</button></div>
+  ${docs.length===0?`<div class="empty card"><div class="eicon">📁</div><p>Aucun document enregistré</p></div>`:''}
+  ${docs.map(d=>{
+    const exp = d.expiry && new Date(d.expiry)<new Date(Date.now()+60*24*3600*1000);
+    const expired = d.expiry && new Date(d.expiry)<new Date();
+    const icons={'Carte grise':'🚗','Assurance':'🛡️','Licence VTC':'📜','KBIS/Inscription':'📋','Contrat':'📄','Facture':'🧾','Autre':'📁'};
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--card);margin-bottom:9px;display:flex;align-items:center;gap:13px;border-left:4px solid ${expired?'var(--danger)':exp?'var(--warning)':'var(--border)'}">
+      <div style="font-size:1.8rem">${icons[d.type]||'📁'}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.9rem">${esc(d.name)}</div>
+        <div style="font-size:.76rem;color:var(--text-muted)">${esc(d.type)} · Ajouté: ${fmtD(d.added)}${d.expiry?` · Exp: ${fmtD(d.expiry)}`:''}</div>
+        ${d.note?`<div style="font-size:.74rem;color:var(--text-muted);margin-top:2px">${esc(d.note)}</div>`:''}
+        ${expired?`<span class="badge bg-red">⚠️ Expiré</span>`:exp?`<span class="badge bg-yellow">⏰ Expire bientôt</span>`:''}
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-outline btn-sm" onclick="editDoc('${d.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+
+async function openDocModal(existingId=null) {
+  const existing = existingId ? (await load('documents')).find(d=>d.id===existingId) : null;
+  const d = existing || {};
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>${existing?'Modifier':'Ajouter'} un document</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveDoc(event,'${existingId||''}')">
+      <div class="fg"><label>Nom *</label><input type="text" name="name" value="${esc(d.name||'')}" required placeholder="Ex: Assurance MAIF 2025"></div>
+      <div class="form-row">
+        <div class="fg"><label>Type</label><select name="type">${['Carte grise','Assurance','Licence VTC','KBIS/Inscription','Contrat','Facture','Autre'].map(t=>`<option value="${t}"${d.type===t?' selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="fg"><label>Date d'expiration</label><input type="date" name="expiry" value="${d.expiry||''}"></div>
+      </div>
+      <div class="fg"><label>Note / Référence</label><textarea name="note" rows="2">${esc(d.note||'')}</textarea></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function saveDoc(e, existingId) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const item = { id:existingId||uid(), name:fd.get('name'), type:fd.get('type'), expiry:fd.get('expiry'), note:fd.get('note'), added:new Date().toISOString().split('T')[0] };
+  await save('documents', item);
+  closeModal(); toast('Document enregistré !','success'); render();
+}
+async function editDoc(id) { await openDocModal(id); }
+async function deleteDoc(id) {
+  if(!confirm('Supprimer ce document ?')) return;
+  await remove('documents', id); toast('Supprimé.','danger'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ALERTES
+// ═══════════════════════════════════════════════════════════
+function isAlertTriggered(a, ctx) {
+  if(a.type==='budget') {
+    const real = a.scope==='vtc' ? sum(ctx.mVtcDep.filter(t=>!a.category||t.category===a.category)) : 0;
+    return real >= a.threshold;
+  }
+  if(a.type==='solde') {
+    const accs = ctx.comptes.filter(c=>a.scope?c.type===a.scope:true);
+    const bal = accs.reduce((s,acc)=>s+ctx.accBalance(acc),0);
+    return bal <= a.threshold;
+  }
+  if(a.type==='dette') {
+    return ctx.dettes.some(d=>d.status!=='soldée' && d.dueDate && new Date(d.dueDate) < new Date(Date.now()+a.threshold*24*3600*1000));
+  }
+  if(a.type==='deficit') {
+    return ctx.netVtc !== undefined ? ctx.ca - ctx.charges < 0 : false;
+  }
+  return false;
+}
+
+async function renderAlertes() {
+  const alerts = await load('alertes-cfg');
+  const [vtcDep, comptes, dettes] = await Promise.all([load('vtc-depenses'), load('comptes'), load('dettes')]);
+  const mVtcDep = byMonth(vtcDep, selectedMonth);
+
+  return `
+  <div class="sec-head"><h2>Gestion des alertes</h2><button class="btn btn-primary btn-sm" onclick="openAlertModal()">+ Nouvelle alerte</button></div>
+  <div class="card" style="margin-bottom:14px">
+    <p style="font-size:.84rem;color:var(--text-muted)">Les alertes vous préviennent automatiquement sur le tableau de bord. Configurez des seuils de dépassement de budget, de solde bas, d'échéance de dette ou de déficit.</p>
+  </div>
+  ${alerts.length===0?`<div class="empty card"><div class="eicon">🔔</div><p>Aucune alerte configurée</p></div>`:''}
+  ${alerts.map(a=>{
+    const triggered = isAlertTriggered(a, {mVtcDep, comptes, dettes, accBalance:()=>0});
+    const typeLabels = {budget:'Dépassement budget',solde:'Solde bas',dette:'Échéance dette',deficit:'Déficit'};
+    return `<div class="card" style="margin-bottom:10px;border-left:4px solid ${triggered?'var(--danger)':a.active?'var(--success)':'var(--border)'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-weight:700">${esc(a.name)}</div>
+          <div style="font-size:.79rem;color:var(--text-muted)">Type: ${typeLabels[a.type]||a.type} · ${a.scope?`Périmètre: ${a.scope==='vtc'?'VTC':'Personnel'}`:'Tous'} ${a.category?`· Catégorie: ${esc(a.category)}`:''} ${a.threshold?`· Seuil: ${a.type==='dette'?a.threshold+' jours':fmt(a.threshold)}`:''}</div>
+          <span class="badge ${triggered?'bg-red':a.active?'bg-green':'bg-gray'}">${triggered?'⚠️ Déclenchée':a.active?'✓ Active':'Inactive'}</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <label style="display:flex;align-items:center;gap:5px;font-size:.8rem;cursor:pointer"><input type="checkbox" ${a.active?'checked':''} onchange="toggleAlert('${a.id}')"> Active</label>
+          <button class="btn btn-outline btn-sm" onclick="editAlert('${a.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAlert('${a.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+
+async function openAlertModal(existingId=null) {
+  const existing = existingId ? (await load('alertes-cfg')).find(a=>a.id===existingId) : null;
+  const a = existing || {};
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>${existing?'Modifier':'Créer'} une alerte</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveAlert(event,'${existingId||''}')">
+      <div class="fg"><label>Nom *</label><input type="text" name="name" value="${esc(a.name||'')}" required placeholder="Ex: Carburant trop élevé"></div>
+      <div class="form-row">
+        <div class="fg"><label>Type d'alerte</label>
+          <select name="type" onchange="document.getElementById('alert-threshold-label').textContent=this.value==='dette'?'Délai (jours avant échéance)':'Seuil (€)'">
+            <option value="budget"${a.type==='budget'?' selected':''}>Dépassement budget</option>
+            <option value="solde"${a.type==='solde'?' selected':''}>Solde bas</option>
+            <option value="dette"${a.type==='dette'?' selected':''}>Échéance dette</option>
+            <option value="deficit"${a.type==='deficit'?' selected':''}>Déficit activité</option>
+          </select>
+        </div>
+        <div class="fg"><label>Périmètre</label>
+          <select name="scope">
+            <option value=""${!a.scope?' selected':''}>Tous</option>
+            <option value="vtc"${a.scope==='vtc'?' selected':''}>VTC (pro)</option>
+            <option value="perso"${a.scope==='perso'?' selected':''}>Personnel</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label id="alert-threshold-label">${a.type==='dette'?'Délai (jours avant échéance)':'Seuil (€)'}</label><input type="number" name="threshold" step="0.01" value="${a.threshold||''}" placeholder="Ex: 300"></div>
+      <div class="fg"><label>Catégorie (optionnel)</label><input type="text" name="category" value="${esc(a.category||'')}" placeholder="Laisser vide = toutes"></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function saveAlert(e, existingId) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const item = { id:existingId||uid(), name:fd.get('name'), type:fd.get('type'), scope:fd.get('scope'), threshold:parseFloat(fd.get('threshold'))||0, category:fd.get('category'), active:true };
+  await save('alertes-cfg', item);
+  closeModal(); toast('Alerte enregistrée !','success'); render();
+}
+
+async function toggleAlert(id) {
+  const alerts = await load('alertes-cfg');
+  const a = alerts.find(i=>i.id===id);
+  if(a) { a.active=!a.active; await save('alertes-cfg', a); render(); }
+}
+async function editAlert(id) { await openAlertModal(id); }
+async function deleteAlert(id) {
+  if(!confirm('Supprimer cette alerte ?')) return;
+  await remove('alertes-cfg', id); toast('Supprimée.','danger'); render();
+}
+
+async function checkAlerts() {
+  const alerts = await load('alertes-cfg');
+  if(!alerts.length) return;
+  const [vtcRec, vtcDep, comptes, dettes, budgets] = await Promise.all([
+    load('vtc-recettes'), load('vtc-depenses'), load('comptes'), load('dettes'), load('budgets')
+  ]);
+  const mVtcDep = byMonth(vtcDep, selectedMonth);
+  const ca = sum(byMonth(vtcRec, selectedMonth));
+  const charges = sum(mVtcDep);
+
+  function accBalance(acc) {
+    const init=parseFloat(acc.initialBalance)||0;
+    return init + sum([...vtcRec,...(CACHE['perso-rev']||[])].filter(o=>o.accountId===acc.id)) - sum([...vtcDep,...(CACHE['perso-dep']||[])].filter(o=>o.accountId===acc.id));
+  }
+
+  const ctx = {mVtcDep, comptes, dettes, accBalance, ca, charges};
+  alerts.filter(a=>a.active).forEach(a=>{
+    if(isAlertTriggered(a, ctx)) toast(`⚠️ ${a.name}`, 'warning');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PARAMÈTRES
+// ═══════════════════════════════════════════════════════════
+async function renderParametres() {
+  const prefs = await IDB.kvGet('prefs', {name:'',siret:'',activite:'VTC'});
+
+  // ── Carte synchronisation ───────────────────────────────
+  const syncConfigured = SYNC.isConfigured();
+  let syncCard = '';
+  if (!syncConfigured) {
+    syncCard = `
+    <div class="card" style="border-top:3px solid var(--primary);margin-bottom:14px">
+      <div class="card-title">☁️ Synchronisation multi-appareils</div>
+      <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:12px">
+        Configurez une synchronisation simple pour retrouver vos données sur tous vos appareils (PC, smartphone, tablette).
+        Aucun compte Google requis.
+      </p>
+      <div style="font-size:.82rem;line-height:1.9;margin-bottom:16px;background:#f0f7ff;border-radius:8px;padding:14px 16px;border:1px solid #bfdbfe">
+        <strong>🛠 Configuration en 3 étapes (gratuit) :</strong>
+        <ol style="margin:8px 0 0 18px">
+          <li>Allez sur <a href="https://jsonbin.io" target="_blank" style="color:var(--primary);font-weight:600">jsonbin.io</a> → créez un compte gratuit</li>
+          <li>Cliquez sur <strong>"API Keys"</strong> dans le menu → copiez votre <strong>Master Key</strong></li>
+          <li>Cliquez sur <strong>"Create Bin"</strong> → collez <code>{}</code> → cliquez <strong>Create</strong> → copiez l'<strong>ID du bin</strong> (ex : <code>64abc123ef...</code>)</li>
+        </ol>
+        <p style="margin:10px 0 0;color:#1e40af">Collez ces 2 valeurs ci-dessous et sauvegardez.</p>
+      </div>
+      <div class="fg">
+        <label>Master Key (commence par $2a$…)</label>
+        <input type="password" id="jb-apikey" placeholder="\$2a\$10\$XXXXXXXXXXX..." style="font-family:monospace;font-size:.8rem">
+      </div>
+      <div class="fg">
+        <label>Bin ID (suite de lettres et chiffres)</label>
+        <input type="text" id="jb-binid" placeholder="64abc123ef456789..." style="font-family:monospace;font-size:.8rem">
+      </div>
+      <button class="btn btn-primary" onclick="SYNC.configure(document.getElementById('jb-apikey').value, document.getElementById('jb-binid').value)">💾 Activer la synchronisation</button>
+    </div>`;
+  } else {
+    syncCard = `
+    <div class="card" style="border-top:3px solid var(--success);margin-bottom:14px">
+      <div class="card-title">☁️ Synchronisation multi-appareils</div>
+      <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:7px;padding:10px 14px;font-size:.83rem;margin-bottom:14px">
+        ✅ <strong>Synchronisation configurée</strong> via JSONBin.io<br>
+        <span style="color:var(--text-muted)">Utilisez les boutons ci-dessous pour envoyer ou récupérer vos données.</span>
+      </div>
+      <div style="font-size:.81rem;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:10px 14px;margin-bottom:14px">
+        <strong>📋 Comment utiliser :</strong><br>
+        • <strong>Envoyer vers le cloud</strong> — après avoir saisi de nouvelles données (sur PC par ex.)<br>
+        • <strong>Récupérer depuis le cloud</strong> — sur un autre appareil (smartphone) pour avoir les dernières données
+      </div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="SYNC.pushAll()">⬆️ Envoyer vers le cloud</button>
+        <button class="btn btn-outline" onclick="SYNC.pullAll()">⬇️ Récupérer depuis le cloud</button>
+        <button class="btn btn-outline" onclick="SYNC.removeConfig()" style="color:var(--danger);border-color:var(--danger)">🗑 Supprimer la config</button>
+      </div>
+    </div>`;
+  }
+
+  return `
+  ${syncCard}
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">Mon profil</div>
+      <form onsubmit="savePrefs(event)">
+        <div class="fg"><label>Nom / Prénom</label><input type="text" name="name" value="${esc(prefs.name||'')}" placeholder="Votre nom"></div>
+        <div class="fg"><label>N° SIRET</label><input type="text" name="siret" value="${esc(prefs.siret||'')}" placeholder="14 chiffres"></div>
+        <div class="fg"><label>Activité</label><input type="text" name="activite" value="${esc(prefs.activite||'VTC')}"></div>
+        <button type="submit" class="btn btn-primary">Sauvegarder</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-title">Import / Export</div>
+      <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:14px">Sauvegarde manuelle de vos données.</p>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <button class="btn btn-outline" onclick="exportJson()">💾 Exporter tout (JSON)</button>
+        <button class="btn btn-outline" onclick="exportCsvAll()">📊 Exporter toutes les opérations (CSV)</button>
+        <label class="btn btn-outline" style="cursor:pointer">📂 Importer une sauvegarde (JSON) <input type="file" accept=".json" style="display:none" onchange="importJson(event)"></label>
+        <button class="btn btn-danger" onclick="clearAll()">🗑 Effacer toutes les données</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">À propos</div>
+    <p style="font-size:.84rem;color:var(--text-muted)">Dashboard VTC Finance v2.0 · JSONBin Sync · IndexedDB · Offline-ready</p>
+  </div>`;
+}
+
+async function savePrefs(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const prefs = { name:fd.get('name'), siret:fd.get('siret'), activite:fd.get('activite') };
+  await IDB.kvSet('prefs', prefs);
+  document.getElementById('user-name-display').textContent = prefs.name || 'Auto-entrepreneur';
+  toast('Profil enregistré !','success');
+}
+
+async function quickBackup() {
+  const data={};
+  for(const store of IDB.STORES) data[store]=await IDB.getAll(store);
+  blob2dl(JSON.stringify(data,null,2),'application/json',`vtcfinance_backup_${today()}.json`);
+  localStorage.setItem('vtc-last-backup', Date.now().toString());
+  toast('💾 Sauvegarde téléchargée ! Gardez ce fichier en lieu sûr.','success');
+}
+
+async function exportJson() {
+  const data={};
+  for(const store of IDB.STORES) data[store]=await IDB.getAll(store);
+  blob2dl(JSON.stringify(data,null,2),'application/json',`vtcfinance_${today()}.json`);
+  localStorage.setItem('vtc-last-backup', Date.now().toString());
+  toast('Export JSON téléchargé !','success');
+}
+
+async function exportCsv(store) {
+  const items = await IDB.getAll(store);
+  const cols=['id','date','amount','label','category','accountId','note'];
+  const csv=[cols.join(';'),...items.map(i=>cols.map(c=>`"${(i[c]||'').toString().replace(/"/g,'""')}"`).join(';'))].join('\n');
+  blob2dl(csv,'text/csv',`${store}_${today()}.csv`);
+  toast('CSV exporté !','success');
+}
+
+async function exportCsvAll() {
+  const stores=['vtc-recettes','vtc-depenses','perso-rev','perso-dep'];
+  let all=[];
+  for(const s of stores) { const items=await IDB.getAll(s); all.push(...items.map(i=>({...i,_store:s}))); }
+  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const cols=['date','amount','label','category','_store','accountId','note'];
+  const csv=[cols.join(';'),...all.map(i=>cols.map(c=>`"${(i[c]||'').toString().replace(/"/g,'""')}"`).join(';'))].join('\n');
+  blob2dl(csv,'text/csv',`operations_${today()}.csv`);
+  toast('Export CSV complet téléchargé !','success');
+}
+
+async function importJson(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try {
+      const data=JSON.parse(ev.target.result);
+      for(const [store,items] of Object.entries(data)) {
+        if(!IDB.STORES.includes(store)) continue;
+        await IDB.clear(store);
+        for(const item of (Array.isArray(items)?items:[])) await IDB.put(store,item);
+        invalidate(store);
+      }
+      toast('Données importées avec succès !','success'); render();
+    } catch { toast('Fichier invalide !','danger'); }
+  };
+  reader.readAsText(file);
+}
+
+async function clearAll() {
+  if(!confirm('ATTENTION : Effacer TOUTES les données ? Irréversible.')) return;
+  for(const s of IDB.STORES) { await IDB.clear(s); invalidate(s); }
+  toast('Données effacées.','danger'); render();
+}
+
+function blob2dl(content, type, name) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click();
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(){document.getElementById('modal-bg').classList.add('open')}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+function closeModalBg(e){if(e.target===document.getElementById('modal-bg'))closeModal()}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type='success') {
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<div class="toast-body"><div class="toast-title">${msg}</div></div><button class="toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),4000);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SERVICE WORKER
+// ═══════════════════════════════════════════════════════════
+if('serviceWorker' in navigator) {
+  const swCode=`
+const CACHE='vtcfinance-v2';
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['/gestionnaire/']))));
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  e.respondWith(caches.match(e.request).then(r=>r||(fetch(e.request).then(nr=>{
+    const cl=nr.clone();
+    caches.open(CACHE).then(c=>c.put(e.request,cl));
+    return nr;
+  }))));
+});`;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const swUrl=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CATEGORIES ADMIN
+// ═══════════════════════════════════════════════════════════
+async function initCategories() {
+  const existing = await load('categories');
+  if(existing.length > 0) return;
+  const defaults = [
+    {id:'vtcd-carb',type:'vtc-depenses',name:'Carburant',parentId:null},
+    {id:'vtcd-entr',type:'vtc-depenses',name:'Entretien',parentId:null},
+    {id:'vtcd-assu',type:'vtc-depenses',name:'Assurance',parentId:null},
+    {id:'vtcd-tel', type:'vtc-depenses',name:'Téléphone / Connexion',parentId:null},
+    {id:'vtcd-plat',type:'vtc-depenses',name:'Plateforme',parentId:null},
+    {id:'vtcd-pea', type:'vtc-depenses',name:'Péage',parentId:null},
+    {id:'vtcd-lav', type:'vtc-depenses',name:'Lavage',parentId:null},
+    {id:'vtcd-park',type:'vtc-depenses',name:'Parking',parentId:null},
+    {id:'vtcd-fix', type:'vtc-depenses',name:'Charge fixe',parentId:null},
+    {id:'vtcd-var', type:'vtc-depenses',name:'Charge variable',parentId:null},
+    {id:'vtcd-exc', type:'vtc-depenses',name:'Exceptionnel',parentId:null},
+    {id:'vtcd-aut', type:'vtc-depenses',name:'Autre',parentId:null},
+    {id:'vtcd-carb-ess',type:'vtc-depenses',name:'Essence',parentId:'vtcd-carb'},
+    {id:'vtcd-carb-die',type:'vtc-depenses',name:'Diesel',parentId:'vtcd-carb'},
+    {id:'vtcd-carb-gpl',type:'vtc-depenses',name:'GPL / Électrique',parentId:'vtcd-carb'},
+    {id:'vtcd-entr-vid',type:'vtc-depenses',name:'Vidange',parentId:'vtcd-entr'},
+    {id:'vtcd-entr-pne',type:'vtc-depenses',name:'Pneus',parentId:'vtcd-entr'},
+    {id:'vtcd-entr-rev',type:'vtc-depenses',name:'Révision',parentId:'vtcd-entr'},
+    {id:'vtcd-entr-fre',type:'vtc-depenses',name:'Freins',parentId:'vtcd-entr'},
+    {id:'vtcd-entr-aut',type:'vtc-depenses',name:'Autre entretien',parentId:'vtcd-entr'},
+    {id:'vtcd-plat-ube',type:'vtc-depenses',name:'Uber',parentId:'vtcd-plat'},
+    {id:'vtcd-plat-bol',type:'vtc-depenses',name:'Bolt',parentId:'vtcd-plat'},
+    {id:'vtcd-plat-hee',type:'vtc-depenses',name:'Heetch',parentId:'vtcd-plat'},
+    {id:'vtcd-plat-aut',type:'vtc-depenses',name:'Autre plateforme',parentId:'vtcd-plat'},
+    {id:'perd-ali', type:'perso-dep',name:'Alimentation',parentId:null},
+    {id:'perd-log', type:'perso-dep',name:'Logement',parentId:null},
+    {id:'perd-tra', type:'perso-dep',name:'Transport',parentId:null},
+    {id:'perd-san', type:'perso-dep',name:'Santé',parentId:null},
+    {id:'perd-loi', type:'perso-dep',name:'Loisirs',parentId:null},
+    {id:'perd-vet', type:'perso-dep',name:'Vêtements',parentId:null},
+    {id:'perd-abo', type:'perso-dep',name:'Abonnement',parentId:null},
+    {id:'perd-aut', type:'perso-dep',name:'Autre',parentId:null},
+    {id:'perd-ali-crs',type:'perso-dep',name:'Courses',parentId:'perd-ali'},
+    {id:'perd-ali-res',type:'perso-dep',name:'Restaurant',parentId:'perd-ali'},
+    {id:'perd-log-loy',type:'perso-dep',name:'Loyer',parentId:'perd-log'},
+    {id:'perd-log-cha',type:'perso-dep',name:'Charges',parentId:'perd-log'},
+    {id:'perd-log-ele',type:'perso-dep',name:'Électricité / Gaz',parentId:'perd-log'},
+    {id:'perd-tra-ess',type:'perso-dep',name:'Essence perso',parentId:'perd-tra'},
+    {id:'perd-tra-ass',type:'perso-dep',name:'Assurance véhicule',parentId:'perd-tra'},
+    {id:'perd-tra-ent',type:'perso-dep',name:'Entretien véhicule',parentId:'perd-tra'},
+    {id:'perd-san-med',type:'perso-dep',name:'Médecin',parentId:'perd-san'},
+    {id:'perd-san-pha',type:'perso-dep',name:'Pharmacie',parentId:'perd-san'},
+    {id:'perd-loi-spo',type:'perso-dep',name:'Sport',parentId:'perd-loi'},
+    {id:'perd-loi-sor',type:'perso-dep',name:'Sorties',parentId:'perd-loi'},
+    {id:'perd-loi-vac',type:'perso-dep',name:'Vacances',parentId:'perd-loi'},
+    {id:'perd-abo-int',type:'perso-dep',name:'Internet',parentId:'perd-abo'},
+    {id:'perd-abo-mob',type:'perso-dep',name:'Mobile',parentId:'perd-abo'},
+    {id:'perd-abo-str',type:'perso-dep',name:'Streaming',parentId:'perd-abo'},
+  ];
+  for(const cat of defaults) await save('categories', cat);
+}
+
+async function renderCatAdmin() {
+  const cats = await load('categories');
+  const types = [
+    {key:'vtc-depenses', label:'🚗 Charges VTC',          color:'var(--danger)'},
+    {key:'perso-dep',    label:'🏠 Dépenses personnelles', color:'var(--warning)'},
+  ];
+  return `
+  <div class="sec-head" style="margin-bottom:18px">
+    <h2>🏷️ Catégories de dépenses</h2>
+  </div>
+  <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:18px">Organisez vos dépenses en catégories et sous-catégories. Ces catégories sont utilisées lors de la saisie d'une dépense.</p>
+  ${types.map(type=>{
+    const parents = cats.filter(c=>c.type===type.key && !c.parentId);
+    return `
+    <div class="card" style="border-top:3px solid ${type.color};margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h3 style="margin:0;color:${type.color};font-size:1rem">${type.label}</h3>
+        <button class="btn btn-primary btn-sm" onclick="openNewCatModal('${type.key}',null)">➕ Nouvelle catégorie</button>
+      </div>
+      ${parents.length===0?`<div class="empty" style="padding:20px 0"><div class="eicon">📭</div><p>Aucune catégorie. Créez-en une ci-dessus.</p></div>`:''}
+      ${parents.map((p,pi)=>{
+        const subs = cats.filter(c=>c.type===type.key && c.parentId===p.id);
+        const rowBg = pi%2===0 ? 'var(--card)' : '#f8f9fb';
+        const subBorderCol = type.key==='vtc-depenses' ? 'rgba(239,68,68,.25)' : 'rgba(245,158,11,.25)';
+        const subChipBg   = type.key==='vtc-depenses' ? 'rgba(239,68,68,.06)' : 'rgba(245,158,11,.06)';
+        const subChipBor  = type.key==='vtc-depenses' ? 'rgba(239,68,68,.2)'  : 'rgba(245,158,11,.2)';
+        return `
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;background:${rowBg}">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600;flex:1;font-size:.93rem">${esc(p.name)}</span>
+            ${subs.length>0?`<span style="font-size:.72rem;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1px 7px">${subs.length} sous-cat.</span>`:''}
+            <button class="btn btn-outline btn-sm" onclick="openNewCatModal('${type.key}','${p.id}')">+ sous-cat.</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCat('${p.id}','${type.key}')">🗑</button>
+          </div>
+          ${subs.length>0?`
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-left:10px;border-left:3px solid ${subBorderCol}">
+            ${subs.map(s=>`
+            <span style="background:${subChipBg};border:1px solid ${subChipBor};border-radius:20px;padding:3px 10px;font-size:.8rem;display:inline-flex;align-items:center;gap:6px">
+              ${esc(s.name)}
+              <button onclick="deleteCat('${s.id}','${type.key}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0;line-height:1;font-size:.85rem" title="Supprimer">✕</button>
+            </span>`).join('')}
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('')}`;
+}
+
+async function openNewCatModal(type, parentId) {
+  const cats = await load('categories');
+  const parentName = parentId ? cats.find(c=>c.id===parentId)?.name : null;
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-head"><h3>${parentId?`➕ Sous-catégorie${parentName?` de "${parentName}"`:''}`:'➕ Nouvelle catégorie'}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form onsubmit="saveCatFromModal(event,'${type}','${parentId||''}')">
+      <div class="fg"><label>Nom *</label><input type="text" name="name" required placeholder="${parentId?'Ex: Vidange, Pneus, Streaming…':'Ex: Carburant, Loyer, Santé…'}" autofocus></div>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">Créer</button>
+      </div>
+    </form>`;
+  openModal();
+}
+
+async function saveCatFromModal(e, type, parentId) {
+  e.preventDefault();
+  const name = new FormData(e.target).get('name')?.trim();
+  if(!name) return;
+  await save('categories', {id:uid(), type, name, parentId: parentId||null});
+  invalidate('categories');
+  closeModal(); toast('Catégorie créée !','success'); render();
+}
+
+async function deleteCat(id, type) {
+  const cats = await load('categories');
+  const children = cats.filter(c=>c.parentId===id);
+  if(children.length>0) {
+    if(!confirm(`Cette catégorie a ${children.length} sous-catégorie(s). Tout supprimer ?`)) return;
+    for(const c of children) await remove('categories', c.id);
+  } else {
+    if(!confirm('Supprimer cette catégorie ?')) return;
+  }
+  await remove('categories', id);
+  invalidate('categories');
+  toast('Supprimé.','danger'); render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+(async function init() {
+  initMonthSelect();
+  const prefs = await IDB.kvGet('prefs', null);
+  if(prefs?.name) document.getElementById('user-name-display').textContent = prefs.name;
+  await initCategories();
+  await render();
+  SYNC.init();
+  // Rappel de sauvegarde si > 7 jours sans backup
+  const last = parseInt(localStorage.getItem('vtc-last-backup') || '0');
+  const daysSince = (Date.now() - last) / (1000 * 60 * 60 * 24);
+  if (daysSince > 7) {
+    setTimeout(() => {
+      const msg = last === 0
+        ? '💡 Pensez à sauvegarder vos données — cliquez sur 💾 Sauvegarder dans la barre du haut.'
+        : `⏰ Aucune sauvegarde depuis ${Math.floor(daysSince)} jours — cliquez sur 💾 Sauvegarder.`;
+      toast(msg, 'warning');
+    }, 3000);
+  }
+})();
+</script>
+</body>
+</html>
